@@ -97,13 +97,17 @@ static PIXEL_YC inline convert_yc48(PIXEL_YUV src) {
     return dst;
 }
 
+template<bool SRC_DIB>
 static __forceinline void convert_matrix_yc48(COLOR_PROC_INFO *cpip, const CSP_CONVERT_MATRIX matrix) {
     const int height = cpip->h;
     const int width = cpip->w;
-    const int pitch = cpip->line_size;
-    for (int y = 0; y < height; y++) {
-        PIXEL_YC *ycp_dst = (PIXEL_YC *)((BYTE *)cpip->ycp + y * pitch);
-        PIXEL_YC *ycp_src = (PIXEL_YC *)cpip->pixelp + y * width;
+    int src_pitch = (SRC_DIB) ? sizeof(PIXEL_YC) * cpip->w : cpip->line_size;
+    int dst_pitch = (SRC_DIB) ? cpip->line_size : sizeof(PIXEL_YC) * cpip->w;
+    const char *ycp_src_line = (const char *)((SRC_DIB) ? cpip->pixelp : cpip->ycp);
+    char *ycp_dst_line = (char *)((SRC_DIB) ? cpip->ycp : cpip->pixelp);
+    for (int y = 0; y < height; y++, ycp_dst_line += dst_pitch, ycp_src_line += src_pitch) {
+        PIXEL_YC *ycp_dst = (PIXEL_YC *)ycp_dst_line;
+        PIXEL_YC *ycp_src = (PIXEL_YC *)ycp_src_line;
         for (int x = 0; x < width; x++, ycp_dst++, ycp_src++) {
             *ycp_dst = convert_csp(*ycp_src, matrix);
         }

@@ -40,10 +40,10 @@ void convert_yc48_yuy2_c(COLOR_PROC_INFO *cpip) {
     convert_yc48_yuy2(cpip, bt601_to_btxxx);
 }
 void convert_yc48_btxxx_bt601_c(COLOR_PROC_INFO *cpip) {
-    convert_matrix_yc48(cpip, bt601_to_btxxx);
+    convert_matrix_yc48<true>(cpip, btxxx_to_bt601);
 }
 void convert_yc48_bt601_btxxx_c(COLOR_PROC_INFO *cpip) {
-    convert_matrix_yc48(cpip, bt601_to_btxxx);
+    convert_matrix_yc48<false>(cpip, bt601_to_btxxx);
 }
 
 void get_func(convert_color_func *func_list) {
