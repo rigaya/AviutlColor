@@ -37,7 +37,7 @@ void convert_yuy2_yc48_c(COLOR_PROC_INFO *cpip) {
     convert_yuy2_yc48(cpip, btxxx_to_bt601);
 }
 void convert_yc48_yuy2_c(COLOR_PROC_INFO *cpip) {
-    convert_yc48_yuy2(cpip, btxxx_to_bt601);
+    convert_yc48_yuy2(cpip, bt601_to_btxxx);
 }
 void convert_yc48_btxxx_bt601_c(COLOR_PROC_INFO *cpip) {
     convert_matrix_yc48(cpip, bt601_to_btxxx);
