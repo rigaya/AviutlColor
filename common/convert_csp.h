@@ -44,6 +44,8 @@ struct CSP_CONVERT_MATRIX {
     int cr1, cr2; //÷16384
 };
 
+typedef void (*convert_func)(COLOR_PROC_INFO *cpip);
+
 static const CSP_CONVERT_MATRIX bt709_bt601 = {
      6657, 12953, //÷65536
     16218, -1813, //÷16384
@@ -67,6 +69,8 @@ static const CSP_CONVERT_MATRIX bt601_bt2020nc = {
     16548,  1009, //÷16384
      1425, 16865  //÷16384
 };
+
+#include "color_select_matrix.h"
 
 static PIXEL_YC inline convert_csp(PIXEL_YC src, CSP_CONVERT_MATRIX matrix) {
     PIXEL_YC dst;

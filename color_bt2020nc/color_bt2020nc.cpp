@@ -25,13 +25,15 @@
 //
 // --------------------------------------------------------------------------------------------
 
+#define NOMINMAX
 #include <windows.h>
-
 #include "color.h"
 #include "convert_csp.h"
+#include "color_simd.h"
 
-#define btxxx_to_bt601 bt2020nc_bt601
-#define bt601_to_btxxx bt601_bt2020nc
+BOOL func_init(void);
+
+convert_color_func g_func_list;
 
 //---------------------------------------------------------------------
 //		色変換プラグイン構造体定義
@@ -40,7 +42,7 @@ COLOR_PLUGIN_TABLE color_plugin_table = {
     NULL,												//	フラグ
     "BT.2020nc 変換",									//	プラグインの名前
     "BT.2020nc 変換 version 0.00 by rigaya",		//	プラグインの情報
-    NULL,												//	DLL開始時に呼ばれる関数へのポインタ (NULLなら呼ばれません)
+    func_init,				        					//	DLL開始時に呼ばれる関数へのポインタ (NULLなら呼ばれません)
     NULL,												//	DLL終了時に呼ばれる関数へのポインタ (NULLなら呼ばれません)
     func_pixel2yc,										//	DIB形式の画像からからPIXEL_YC形式の画像に変換します (NULLなら呼ばれません)
     func_yc2pixel,										//	PIXEL_YC形式の画像からからDIB形式の画像に変換します (NULLなら呼ばれません)
@@ -58,14 +60,22 @@ EXTERN_C COLOR_PLUGIN_TABLE __declspec(dllexport) * __stdcall GetColorPluginTabl
 
 
 //---------------------------------------------------------------------
+//      DLL開始時に呼ばれる関数
+//---------------------------------------------------------------------
+BOOL func_init(void) {
+    get_func(&g_func_list);
+    return TRUE;
+}
+
+//---------------------------------------------------------------------
 //		入力変換
 //---------------------------------------------------------------------
 BOOL func_pixel2yc( COLOR_PROC_INFO *cpip ) {
     if (cpip->format == MAKEFOURCC('Y', 'U', 'Y', '2')) {
-        convert_yuy2_yc48(cpip, btxxx_to_bt601);
+        g_func_list.yuy2_yc48(cpip);
         return TRUE;
     } else if (cpip->format == MAKEFOURCC('Y', 'C', '4', '8')) {
-        convert_matrix_yc48(cpip, btxxx_to_bt601);
+        g_func_list.yc48_btxxx_bt601(cpip);
         return TRUE;
     }
     //	RGBはAviUtl本体の変換に任せる
@@ -78,10 +88,10 @@ BOOL func_pixel2yc( COLOR_PROC_INFO *cpip ) {
 //---------------------------------------------------------------------
 BOOL func_yc2pixel( COLOR_PROC_INFO *cpip ) {
     if (cpip->format == MAKEFOURCC('Y', 'U', 'Y', '2')) {
-        convert_yc48_yuy2(cpip, bt601_to_btxxx);
+        g_func_list.yc48_yuy2(cpip);
         return TRUE;
     } else if (cpip->format == MAKEFOURCC('Y', 'C', '4', '8')) {
-        convert_matrix_yc48(cpip, bt601_to_btxxx);
+        g_func_list.yc48_bt601_btxxx(cpip);
         return TRUE;
     }
     //	RGBはAviUtl本体の変換に任せる

@@ -25,8 +25,71 @@
 //
 // --------------------------------------------------------------------------------------------
 
+#define NOMINMAX
+#include <Windows.h>
 #include <cstdint>
+#include <cstdlib>
+#include "color.h"
+#include "convert_csp.h"
 #include "color_simd.h"
+
+void convert_yuy2_yc48_c(COLOR_PROC_INFO *cpip) {
+    convert_yuy2_yc48(cpip, btxxx_to_bt601);
+}
+void convert_yc48_yuy2_c(COLOR_PROC_INFO *cpip) {
+    convert_yc48_yuy2(cpip, btxxx_to_bt601);
+}
+void convert_yc48_btxxx_bt601_c(COLOR_PROC_INFO *cpip) {
+    convert_matrix_yc48(cpip, bt601_to_btxxx);
+}
+void convert_yc48_bt601_btxxx_c(COLOR_PROC_INFO *cpip) {
+    convert_matrix_yc48(cpip, bt601_to_btxxx);
+}
+
+void get_func(convert_color_func *func_list) {
+    struct func_data {
+        uint32_t simd;
+        convert_func func;
+    };
+    static const func_data FUNC_YUY2_YC48[] = {
+        { NONE,  convert_yuy2_yc48_c },
+    };
+    static const func_data FUNC_YC48_YUY2[] = {
+        { NONE,  convert_yc48_yuy2_c },
+    };
+    static const func_data FUNC_YC48_BTXXX_BT601[] = {
+        { NONE,  convert_yc48_btxxx_bt601_c },
+    };
+    static const func_data FUNC_YC48_BT601_BTXXX[] = {
+        { NONE,  convert_yc48_bt601_btxxx_c },
+    };
+
+    uint32_t simd_avail = get_availableSIMD();
+    for (int i = 0; i < _countof(FUNC_YUY2_YC48); i++) {
+        if ((FUNC_YUY2_YC48[i].simd & simd_avail) == FUNC_YUY2_YC48[i].simd) {
+            func_list->yuy2_yc48 = FUNC_YUY2_YC48[i].func;
+            break;
+        }
+    }
+    for (int i = 0; i < _countof(FUNC_YC48_YUY2); i++) {
+        if ((FUNC_YC48_YUY2[i].simd & simd_avail) == FUNC_YC48_YUY2[i].simd) {
+            func_list->yc48_yuy2 = FUNC_YC48_YUY2[i].func;
+            break;
+        }
+    }
+    for (int i = 0; i < _countof(FUNC_YC48_BTXXX_BT601); i++) {
+        if ((FUNC_YC48_BTXXX_BT601[i].simd & simd_avail) == FUNC_YC48_BTXXX_BT601[i].simd) {
+            func_list->yc48_btxxx_bt601 = FUNC_YC48_BTXXX_BT601[i].func;
+            break;
+        }
+    }
+    for (int i = 0; i < _countof(FUNC_YC48_BT601_BTXXX); i++) {
+        if ((FUNC_YC48_BT601_BTXXX[i].simd & simd_avail) == FUNC_YC48_BT601_BTXXX[i].simd) {
+            func_list->yc48_bt601_btxxx = FUNC_YC48_BT601_BTXXX[i].func;
+            break;
+        }
+    }
+}
 
 #include <intrin.h>
 
