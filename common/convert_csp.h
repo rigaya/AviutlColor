@@ -28,6 +28,7 @@
 #ifndef __CONVERT_CSP_H__
 #define __CONVERT_CSP_H__
 
+#include <cstdint>
 #include "color.h"
 
 #ifndef CLAMP
@@ -39,9 +40,9 @@ struct PIXEL_YUV {
 };
 
 struct CSP_CONVERT_MATRIX {
-    int y1, y2;   //÷16384
-    int cb1, cb2; //÷16384
-    int cr1, cr2; //÷16384
+    int16_t y1, y2;   //÷16384
+    int16_t cb1, cb2; //÷16384
+    int16_t cr1, cr2; //÷16384
 };
 
 typedef void (*convert_func)(COLOR_PROC_INFO *cpip);
