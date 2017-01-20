@@ -171,6 +171,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\color_simd.cpp" />
     <ClCompile Include="color_bt2020nc.cpp" />
   </ItemGroup>
   <ItemGroup>
