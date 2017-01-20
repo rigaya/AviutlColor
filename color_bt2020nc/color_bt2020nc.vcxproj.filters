@@ -27,6 +27,9 @@
     <ClCompile Include="..\common\convert_ssse3.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\convert_sse41.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="color_bt2020nc.def">

@@ -175,6 +175,7 @@
   <ItemGroup>
     <ClCompile Include="..\common\color_simd.cpp" />
     <ClCompile Include="..\common\convert_sse2.cpp" />
+    <ClCompile Include="..\common\convert_sse41.cpp" />
     <ClCompile Include="..\common\convert_ssse3.cpp" />
     <ClCompile Include="color_bt2020nc.cpp" />
   </ItemGroup>
