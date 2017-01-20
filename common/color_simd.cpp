@@ -47,9 +47,13 @@ void convert_yc48_bt601_btxxx_c(COLOR_PROC_INFO *cpip) {
 }
 
 void convert_yuy2_yc48_sse2(COLOR_PROC_INFO *cpip);
+void convert_yuy2_yc48_ssse3(COLOR_PROC_INFO *cpip);
 void convert_yc48_yuy2_sse2(COLOR_PROC_INFO *cpip);
+void convert_yc48_yuy2_ssse3(COLOR_PROC_INFO *cpip);
 void convert_yc48_btxxx_bt601_sse2(COLOR_PROC_INFO *cpip);
+void convert_yc48_btxxx_bt601_ssse3(COLOR_PROC_INFO *cpip);
 void convert_yc48_bt601_btxxx_sse2(COLOR_PROC_INFO *cpip);
+void convert_yc48_bt601_btxxx_ssse3(COLOR_PROC_INFO *cpip);
 
 void get_func(convert_color_func *func_list) {
     struct func_data {
@@ -57,18 +61,22 @@ void get_func(convert_color_func *func_list) {
         convert_func func;
     };
     static const func_data FUNC_YUY2_YC48[] = {
+        { SSSE3, convert_yuy2_yc48_ssse3 },
         { SSE2,  convert_yuy2_yc48_sse2 },
         { NONE,  convert_yuy2_yc48_c },
     };
     static const func_data FUNC_YC48_YUY2[] = {
+        { SSSE3, convert_yc48_yuy2_ssse3 },
         { SSE2,  convert_yc48_yuy2_sse2 },
         { NONE,  convert_yc48_yuy2_c },
     };
     static const func_data FUNC_YC48_BTXXX_BT601[] = {
+        { SSSE3, convert_yc48_btxxx_bt601_ssse3 },
         { SSE2,  convert_yc48_btxxx_bt601_sse2 },
         { NONE,  convert_yc48_btxxx_bt601_c },
     };
     static const func_data FUNC_YC48_BT601_BTXXX[] = {
+        { SSSE3, convert_yc48_bt601_btxxx_ssse3 },
         { SSE2,  convert_yc48_bt601_btxxx_sse2 },
         { NONE,  convert_yc48_bt601_btxxx_c },
     };
