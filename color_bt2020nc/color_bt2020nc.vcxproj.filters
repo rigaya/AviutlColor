@@ -33,6 +33,9 @@
     <ClCompile Include="..\common\convert_avx.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\convert_csp_avx2.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="color_bt2020nc.def">

@@ -50,18 +50,22 @@ void convert_yuy2_yc48_sse2(COLOR_PROC_INFO *cpip);
 void convert_yuy2_yc48_ssse3(COLOR_PROC_INFO *cpip);
 void convert_yuy2_yc48_sse41(COLOR_PROC_INFO *cpip);
 void convert_yuy2_yc48_avx(COLOR_PROC_INFO *cpip);
+void convert_yuy2_yc48_avx2(COLOR_PROC_INFO *cpip);
 void convert_yc48_yuy2_sse2(COLOR_PROC_INFO *cpip);
 void convert_yc48_yuy2_ssse3(COLOR_PROC_INFO *cpip);
 void convert_yc48_yuy2_sse41(COLOR_PROC_INFO *cpip);
 void convert_yc48_yuy2_avx(COLOR_PROC_INFO *cpip);
+void convert_yc48_yuy2_avx2(COLOR_PROC_INFO *cpip);
 void convert_yc48_btxxx_bt601_sse2(COLOR_PROC_INFO *cpip);
 void convert_yc48_btxxx_bt601_ssse3(COLOR_PROC_INFO *cpip);
 void convert_yc48_btxxx_bt601_sse41(COLOR_PROC_INFO *cpip);
 void convert_yc48_btxxx_bt601_avx(COLOR_PROC_INFO *cpip);
+void convert_yc48_btxxx_bt601_avx2(COLOR_PROC_INFO *cpip);
 void convert_yc48_bt601_btxxx_sse2(COLOR_PROC_INFO *cpip);
 void convert_yc48_bt601_btxxx_ssse3(COLOR_PROC_INFO *cpip);
 void convert_yc48_bt601_btxxx_sse41(COLOR_PROC_INFO *cpip);
 void convert_yc48_bt601_btxxx_avx(COLOR_PROC_INFO *cpip);
+void convert_yc48_bt601_btxxx_avx2(COLOR_PROC_INFO *cpip);
 
 void get_func(convert_color_func *func_list) {
     struct func_data {
@@ -69,6 +73,7 @@ void get_func(convert_color_func *func_list) {
         convert_func func;
     };
     static const func_data FUNC_YUY2_YC48[] = {
+        { AVX2,  convert_yuy2_yc48_avx2 },
         { AVX,   convert_yuy2_yc48_avx },
         { SSE41, convert_yuy2_yc48_sse41 },
         { SSSE3, convert_yuy2_yc48_ssse3 },
@@ -76,6 +81,7 @@ void get_func(convert_color_func *func_list) {
         { NONE,  convert_yuy2_yc48_c },
     };
     static const func_data FUNC_YC48_YUY2[] = {
+        { AVX2,  convert_yc48_yuy2_avx2 },
         { AVX,   convert_yc48_yuy2_avx },
         { SSE41, convert_yc48_yuy2_sse41 },
         { SSSE3, convert_yc48_yuy2_ssse3 },
@@ -83,6 +89,7 @@ void get_func(convert_color_func *func_list) {
         { NONE,  convert_yc48_yuy2_c },
     };
     static const func_data FUNC_YC48_BTXXX_BT601[] = {
+        { AVX2,  convert_yc48_btxxx_bt601_avx2 },
         { AVX,   convert_yc48_btxxx_bt601_avx },
         { SSE41, convert_yc48_btxxx_bt601_sse41 },
         { SSSE3, convert_yc48_btxxx_bt601_ssse3 },
@@ -90,6 +97,7 @@ void get_func(convert_color_func *func_list) {
         { NONE,  convert_yc48_btxxx_bt601_c },
     };
     static const func_data FUNC_YC48_BT601_BTXXX[] = {
+        { AVX2,  convert_yc48_bt601_btxxx_avx2 },
         { AVX,   convert_yc48_bt601_btxxx_avx },
         { SSE41, convert_yc48_bt601_btxxx_sse41 },
         { SSSE3, convert_yc48_bt601_btxxx_ssse3 },
