@@ -75,45 +75,6 @@ static __forceinline __m128i _mm_packus_epi32_simd(__m128i a, __m128i b) {
 #endif
 }
 
-static __forceinline void separate_low_up(__m128i& x0_return_lower, __m128i& x1_return_upper) {
-    __m128i x4, x5;
-    const __m128i xMaskLowByte = _mm_srli_epi16(_mm_cmpeq_epi8(_mm_setzero_si128(), _mm_setzero_si128()), 8);
-    x4 = _mm_srli_epi16(x0_return_lower, 8);
-    x5 = _mm_srli_epi16(x1_return_upper, 8);
-
-    x0_return_lower = _mm_and_si128(x0_return_lower, xMaskLowByte);
-    x1_return_upper = _mm_and_si128(x1_return_upper, xMaskLowByte);
-
-    x0_return_lower = _mm_packus_epi16(x0_return_lower, x1_return_upper);
-    x1_return_upper = _mm_packus_epi16(x4, x5);
-}
-
-static __forceinline void separate_low_up_16bit(__m128i& x0_return_lower, __m128i& x1_return_upper) {
-    __m128i x4, x5;
-    const __m128i xMaskLowByte = _mm_srli_epi32(_mm_cmpeq_epi8(_mm_setzero_si128(), _mm_setzero_si128()), 16);
-    x4 = _mm_srli_epi32(x0_return_lower, 16);
-    x5 = _mm_srli_epi32(x1_return_upper, 16);
-
-    x0_return_lower = _mm_and_si128(x0_return_lower, xMaskLowByte);
-    x1_return_upper = _mm_and_si128(x1_return_upper, xMaskLowByte);
-
-    x0_return_lower = _mm_packus_epi32_simd(x0_return_lower, x1_return_upper);
-    x1_return_upper = _mm_packus_epi32_simd(x4, x5);
-}
-
-//static __forceinline convert_csp_y_cb_cr(__m128i& xY, __m128i& xCb, __m128i& xCr, const CSP_CONVERT_MATRIX matrix) {
-//    xY = _mm_add_epi16(_mm_add_epi16(xY, _mm_mulhi_epi16(xCb, _mm_set1_epi16(matrix.y1))), _mm_mulhi_epi16(xCr, _mm_set1_epi16(matrix.y2)));
-//
-//    __m128i xCbCr0 = _mm_unpacklo_epi16(xCb, xCr);
-//    __m128i xCbCr1 = _mm_unpackhi_epi16(xCb, xCr);
-//    __m128i xCbNew0 = _mm_madd_epi16(xCbCr0, _mm_set1_epi32(matrix.cb2 << 16 | matrix.cb1));
-//    __m128i xCbNew1 = _mm_madd_epi16(xCbCr1, _mm_set1_epi32(matrix.cb2 << 16 | matrix.cb1));
-//    __m128i xCrNew0 = _mm_madd_epi16(xCbCr0, _mm_set1_epi32(matrix.cr2 << 16 | matrix.cr1));
-//    __m128i xCrNew1 = _mm_madd_epi16(xCbCr1, _mm_set1_epi32(matrix.cr2 << 16 | matrix.cr1));
-//    xCb = _mm_packs_epi32(_mm_srli_epi32(xCbNew0, 14), _mm_srli_epi32(xCbNew1, 14));
-//    xCr = _mm_packs_epi32(_mm_srli_epi32(xCrNew0, 14), _mm_srli_epi32(xCrNew1, 14));
-//}
-
 static __forceinline void convert_csp_y_cbcr(__m128i& xY, __m128i& xCbCrEven, __m128i& xCbCrOdd, const CSP_CONVERT_MATRIX matrix) {
     __m128i xCb = _mm_or_si128(_mm_and_si128(xCbCrEven, _mm_set1_epi32(0xffff)), _mm_srli_epi32(xCbCrOdd, 16));
     __m128i xCr = _mm_or_si128(_mm_slli_epi32(xCbCrEven, 16), _mm_andnot_si128(_mm_set1_epi32(0xffff), xCbCrOdd));
