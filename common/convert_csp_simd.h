@@ -124,11 +124,11 @@ static __forceinline void convert_csp_y_cbcr(__m128i& xY, __m128i& xCbCrEven, __
     __m128i xCbCrCbCrOddLo = _mm_unpacklo_epi32(xCbCrOdd, xCbCrOdd);
     __m128i xCbCrCbCrOddHi = _mm_unpackhi_epi32(xCbCrOdd, xCbCrOdd);
 
-    ALIGN32_CONST_ARRAY int16_t MATRIX_CBCR_MUL[] = {
-        matrix.cb1, matrix.cb2, matrix.cr1, matrix.cr2,
-        matrix.cb1, matrix.cb2, matrix.cr1, matrix.cr2,
-    };
-    const __m128i xMul = _mm_load_si128((__m128i *)MATRIX_CBCR_MUL);
+    const __m128i xMul = _mm_set1_epi64x(
+          (int64_t)matrix.cb1 |
+        (((int64_t)matrix.cb2 << 16) & (int64_t)0x00000000ffff0000) |
+        (((int64_t)matrix.cr1 << 32) & (int64_t)0x0000ffff00000000) |
+         ((int64_t)matrix.cr2 << 48));
     xCbCrEven = _mm_packs_epi32(_mm_srai_epi32(_mm_madd_epi16(xCbCrCbCrEvenLo, xMul), 14),
                                 _mm_srai_epi32(_mm_madd_epi16(xCbCrCbCrEvenHi, xMul), 14));
     xCbCrOdd = _mm_packs_epi32(_mm_srai_epi32(_mm_madd_epi16(xCbCrCbCrOddLo, xMul), 14),
