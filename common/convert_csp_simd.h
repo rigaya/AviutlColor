@@ -76,8 +76,8 @@ static __forceinline __m128i _mm_packus_epi32_simd(__m128i a, __m128i b) {
 }
 
 static __forceinline void convert_csp_y_cbcr(__m128i& xY, __m128i& xCbCrEven, __m128i& xCbCrOdd, const CSP_CONVERT_MATRIX matrix) {
-    __m128i xCb = _mm_or_si128(_mm_and_si128(xCbCrEven, _mm_set1_epi32(0xffff)), _mm_srli_epi32(xCbCrOdd, 16));
-    __m128i xCr = _mm_or_si128(_mm_slli_epi32(xCbCrEven, 16), _mm_andnot_si128(_mm_set1_epi32(0xffff), xCbCrOdd));
+    __m128i xCb = _mm_or_si128(_mm_and_si128(xCbCrEven, _mm_set1_epi32(0xffff)), _mm_slli_epi32(xCbCrOdd, 16));
+    __m128i xCr = _mm_or_si128(_mm_srli_epi32(xCbCrEven, 16), _mm_andnot_si128(_mm_set1_epi32(0xffff), xCbCrOdd));
     xY = _mm_add_epi16(_mm_add_epi16(xY, _mm_mulhi_epi16(xCb, _mm_set1_epi16(matrix.y1))), _mm_mulhi_epi16(xCr, _mm_set1_epi16(matrix.y2)));
 
     __m128i xCbCrCbCrEvenLo = _mm_unpacklo_epi32(xCbCrEven, xCbCrEven);

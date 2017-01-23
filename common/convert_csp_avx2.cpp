@@ -54,8 +54,8 @@
 
 
 static __forceinline void convert_csp_y_cbcr(__m256i& yY, __m256i& yCbCrEven, __m256i& yCbCrOdd, const CSP_CONVERT_MATRIX matrix) {
-    __m256i yCb = _mm256_or_si256(_mm256_and_si256(yCbCrEven, _mm256_set1_epi32(0xffff)), _mm256_srli_epi32(yCbCrOdd, 16));
-    __m256i yCr = _mm256_or_si256(_mm256_slli_epi32(yCbCrEven, 16), _mm256_andnot_si256(_mm256_set1_epi32(0xffff), yCbCrOdd));
+    __m256i yCb = _mm256_or_si256(_mm256_and_si256(yCbCrEven, _mm256_set1_epi32(0xffff)), _mm256_slli_epi32(yCbCrOdd, 16));
+    __m256i yCr = _mm256_or_si256(_mm256_srli_epi32(yCbCrEven, 16), _mm256_andnot_si256(_mm256_set1_epi32(0xffff), yCbCrOdd));
     yY = _mm256_add_epi16(_mm256_add_epi16(yY, _mm256_mulhi_epi16(yCb, _mm256_set1_epi16(matrix.y1))), _mm256_mulhi_epi16(yCr, _mm256_set1_epi16(matrix.y2)));
 
     __m256i yCbCrCbCrEvenLo = _mm256_unpacklo_epi32(yCbCrEven, yCbCrEven);
