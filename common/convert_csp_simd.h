@@ -204,16 +204,16 @@ static __forceinline void gather_y_u_v_from_yc48(__m128i& x0, __m128i& x1, __m12
 }
 
 static __forceinline void gather_y_uv_from_yc48(const void *ptr_src, __m128i& x0, __m128i& x1, __m128i& x2) {
-    x0 = _mm_load_si128((const __m128i *)((const char *)ptr_src +  0));
-    x1 = _mm_load_si128((const __m128i *)((const char *)ptr_src + 16));
-    x2 = _mm_load_si128((const __m128i *)((const char *)ptr_src + 32));
+    x0 = _mm_loadu_si128((const __m128i *)((const char *)ptr_src +  0));
+    x1 = _mm_loadu_si128((const __m128i *)((const char *)ptr_src + 16));
+    x2 = _mm_loadu_si128((const __m128i *)((const char *)ptr_src + 32));
     gather_y_uv_from_yc48(x0, x1, x2);
 }
 
 static __forceinline void gather_y_u_v_from_yc48(const void *ptr_src, __m128i& x0, __m128i& x1, __m128i& x2) {
-    x0 = _mm_load_si128((const __m128i *)((const char *)ptr_src +  0));
-    x1 = _mm_load_si128((const __m128i *)((const char *)ptr_src + 16));
-    x2 = _mm_load_si128((const __m128i *)((const char *)ptr_src + 32));
+    x0 = _mm_loadu_si128((const __m128i *)((const char *)ptr_src +  0));
+    x1 = _mm_loadu_si128((const __m128i *)((const char *)ptr_src + 16));
+    x2 = _mm_loadu_si128((const __m128i *)((const char *)ptr_src + 32));
     gather_y_u_v_from_yc48(x0, x1, x2);
 }
 
@@ -269,9 +269,9 @@ static __forceinline void afs_pack_yc48(__m128i& x0, __m128i& x1, __m128i& x2, c
 static __forceinline void store_yc48(void *ptr_dst, __m128i& xY, __m128i& xCbCrEven, __m128i& xCbCrOdd) {
     __m128i x0, x1, x2;
     afs_pack_yc48(x0, x1, x2, xY, xCbCrEven, xCbCrOdd);
-    _mm_store_si128((__m128i *)((char *)ptr_dst +  0), x0);
-    _mm_store_si128((__m128i *)((char *)ptr_dst + 16), x1);
-    _mm_store_si128((__m128i *)((char *)ptr_dst + 32), x2);
+    _mm_storeu_si128((__m128i *)((char *)ptr_dst +  0), x0);
+    _mm_storeu_si128((__m128i *)((char *)ptr_dst + 16), x1);
+    _mm_storeu_si128((__m128i *)((char *)ptr_dst + 32), x2);
 }
 
 template<bool SRC_DIB>
@@ -413,15 +413,15 @@ static __forceinline void convert_yuy2_yc48_simd(COLOR_PROC_INFO *cpip, const CS
         __m128i x0, x1, x2;
         afs_pack_yc48(x0, x1, x2, my0a, mc0a, mc1a);
 
-        _mm_stream_si128((__m128i*)((uint8_t *)ptr_dst +  0), x0);
-        _mm_stream_si128((__m128i*)((uint8_t *)ptr_dst + 16), x1);
-        _mm_stream_si128((__m128i*)((uint8_t *)ptr_dst + 32), x2);
+        _mm_storeu_si128((__m128i*)((uint8_t *)ptr_dst +  0), x0);
+        _mm_storeu_si128((__m128i*)((uint8_t *)ptr_dst + 16), x1);
+        _mm_storeu_si128((__m128i*)((uint8_t *)ptr_dst + 32), x2);
 
         afs_pack_yc48(x0, x1, x2, my0b, mc0b, mc1b);
 
-        _mm_stream_si128((__m128i*)((uint8_t *)ptr_dst + 48), x0);
-        _mm_stream_si128((__m128i*)((uint8_t *)ptr_dst + 64), x1);
-        _mm_stream_si128((__m128i*)((uint8_t *)ptr_dst + 80), x2);
+        _mm_storeu_si128((__m128i*)((uint8_t *)ptr_dst + 48), x0);
+        _mm_storeu_si128((__m128i*)((uint8_t *)ptr_dst + 64), x1);
+        _mm_storeu_si128((__m128i*)((uint8_t *)ptr_dst + 80), x2);
     }
 }
 
@@ -473,7 +473,7 @@ static __forceinline void convert_yc48_yuy2_simd(void *ptr_dst, const void *ptr_
     xY = convert_y_range_from_yc48(xY, xC_Y_L_MA_8, Y_L_RSH_8, _mm_set1_epi32(1<<LSFT_YCC_8), xC_pw_one);
     xCbCrEven = convert_uv_range_from_yc48(xCbCrEven, _mm_set1_epi16(UV_OFFSET_x1), xC_UV_L_MA_8_444, UV_L_RSH_8_444, _mm_set1_epi32(1<<LSFT_YCC_8), xC_pw_one);
 
-    _mm_store_si128((__m128i *)ptr_dst,
+    _mm_storeu_si128((__m128i *)ptr_dst,
         _mm_or_si128(_mm_and_si128(xY, _mm_set1_epi16(0xff)), _mm_slli_epi16(xCbCrEven, 8)));
 }
 
