@@ -40,8 +40,8 @@ convert_color_func g_func_list;
 //---------------------------------------------------------------------
 COLOR_PLUGIN_TABLE color_plugin_table = {
     NULL,												//	フラグ
-    "BT.2020nc 変換",									//	プラグインの名前
-    "BT.2020nc 変換 version 0.00 by rigaya",		//	プラグインの情報
+    "BT.2020nc",									//	プラグインの名前
+    "BT.2020nc version 0.00 by rigaya",		//	プラグインの情報
     func_init,				        					//	DLL開始時に呼ばれる関数へのポインタ (NULLなら呼ばれません)
     NULL,												//	DLL終了時に呼ばれる関数へのポインタ (NULLなら呼ばれません)
     func_pixel2yc,										//	DIB形式の画像からからPIXEL_YC形式の画像に変換します (NULLなら呼ばれません)
