@@ -67,7 +67,7 @@ void convert_yc48_bt601_btxxx_sse41(COLOR_PROC_INFO *cpip);
 void convert_yc48_bt601_btxxx_avx(COLOR_PROC_INFO *cpip);
 void convert_yc48_bt601_btxxx_avx2(COLOR_PROC_INFO *cpip);
 
-void get_func(convert_color_func *func_list) {
+void get_func(convert_color_func *func_list, uint32_t simd_avail) {
     struct func_data {
         uint32_t simd;
         convert_func func;
@@ -105,7 +105,6 @@ void get_func(convert_color_func *func_list) {
         { NONE,  convert_yc48_bt601_btxxx_c },
     };
 
-    uint32_t simd_avail = get_availableSIMD();
     for (int i = 0; i < _countof(FUNC_YUY2_YC48); i++) {
         if ((FUNC_YUY2_YC48[i].simd & simd_avail) == FUNC_YUY2_YC48[i].simd) {
             func_list->yuy2_yc48 = FUNC_YUY2_YC48[i].func;
@@ -130,6 +129,10 @@ void get_func(convert_color_func *func_list) {
             break;
         }
     }
+}
+
+void get_func(convert_color_func *func_list) {
+    get_func(func_list, get_availableSIMD());
 }
 
 #include <intrin.h>
