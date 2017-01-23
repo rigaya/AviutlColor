@@ -57,7 +57,7 @@ static int compare_yuy2(const unsigned char *ptr0, const unsigned char *ptr1, in
         for (int x = 0; x < w; x+=2) {
             int idx_byte = (y * w + x) * 2;
             if (0 != memcmp(&ptr0[idx_byte], &ptr1[idx_byte], 4)) {
-                fprintf(stderr, "Error at (%4d,%4d): None(%3d,%3d,%3d,%3d)-SIMD(%3d,%3d,3d,%3d)\n",
+                fprintf(stderr, "Error at (%4d,%4d): None(%3d,%3d,%3d,%3d)-SIMD(%3d,%3d,%3d,%3d)\n",
                     x, y,
                     ptr0[idx_byte+0], ptr0[idx_byte+1], ptr0[idx_byte+2], ptr0[idx_byte+3],
                     ptr1[idx_byte+0], ptr1[idx_byte+1], ptr1[idx_byte+2], ptr1[idx_byte+3]);
