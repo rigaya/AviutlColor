@@ -313,8 +313,8 @@ void convert_yuy2_yc48_avx2(COLOR_PROC_INFO *cpip, const CSP_CONVERT_MATRIX matr
             ptr_dst += dw;
             ptr_src += dw / sizeof(PIXEL_YC) * 2;
 
-            m0 = _mm256_loadu_si256((const __m256i *)ptr_src);
-            m1 = _mm256_loadu_si256((const __m256i *)(ptr_src + 32));
+            m0 = _mm256_loadu2_m128i((const __m128i *)(ptr_src + 32), (const __m128i *)(ptr_src +  0));
+            m1 = _mm256_loadu2_m128i((const __m128i *)(ptr_src + 48), (const __m128i *)(ptr_src + 16));
 
             my0a = _mm256_packus_epi16(_mm256_and_si256(m0, _mm256_set1_epi16(0xff)), _mm256_and_si256(m1, _mm256_set1_epi16(0xff)));
             mc0a = _mm256_packus_epi16(_mm256_srli_epi16(m0, 8), _mm256_srli_epi16(m1, 8));
