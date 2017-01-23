@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "color_bt2020nc", "color_bt2020nc\color_bt2020nc.vcxproj", "{85A6A6F2-C2B7-46DD-980B-D93430A3ECF0}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "color_bt2020nc_test", "color_bt2020nc_test\color_bt2020nc_test.vcxproj", "{D2D0C553-CBBF-45BB-9A5F-9D97E7DFAAC8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{85A6A6F2-C2B7-46DD-980B-D93430A3ECF0}.Release|x64.Build.0 = Release|x64
 		{85A6A6F2-C2B7-46DD-980B-D93430A3ECF0}.Release|x86.ActiveCfg = Release|Win32
 		{85A6A6F2-C2B7-46DD-980B-D93430A3ECF0}.Release|x86.Build.0 = Release|Win32
+		{D2D0C553-CBBF-45BB-9A5F-9D97E7DFAAC8}.Debug|x64.ActiveCfg = Debug|x64
+		{D2D0C553-CBBF-45BB-9A5F-9D97E7DFAAC8}.Debug|x64.Build.0 = Debug|x64
+		{D2D0C553-CBBF-45BB-9A5F-9D97E7DFAAC8}.Debug|x86.ActiveCfg = Debug|Win32
+		{D2D0C553-CBBF-45BB-9A5F-9D97E7DFAAC8}.Debug|x86.Build.0 = Debug|Win32
+		{D2D0C553-CBBF-45BB-9A5F-9D97E7DFAAC8}.Release|x64.ActiveCfg = Release|x64
+		{D2D0C553-CBBF-45BB-9A5F-9D97E7DFAAC8}.Release|x64.Build.0 = Release|x64
+		{D2D0C553-CBBF-45BB-9A5F-9D97E7DFAAC8}.Release|x86.ActiveCfg = Release|Win32
+		{D2D0C553-CBBF-45BB-9A5F-9D97E7DFAAC8}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
