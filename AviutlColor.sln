@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "color_bt2020nc", "color_bt2
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "color_bt2020nc_test", "color_bt2020nc_test\color_bt2020nc_test.vcxproj", "{D2D0C553-CBBF-45BB-9A5F-9D97E7DFAAC8}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "color_bt709", "color_bt709\color_bt709.vcxproj", "{7140581F-B0DD-4447-B6DF-36BC8586304D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +33,14 @@ Global
 		{D2D0C553-CBBF-45BB-9A5F-9D97E7DFAAC8}.Release|x64.Build.0 = Release|x64
 		{D2D0C553-CBBF-45BB-9A5F-9D97E7DFAAC8}.Release|x86.ActiveCfg = Release|Win32
 		{D2D0C553-CBBF-45BB-9A5F-9D97E7DFAAC8}.Release|x86.Build.0 = Release|Win32
+		{7140581F-B0DD-4447-B6DF-36BC8586304D}.Debug|x64.ActiveCfg = Debug|x64
+		{7140581F-B0DD-4447-B6DF-36BC8586304D}.Debug|x64.Build.0 = Debug|x64
+		{7140581F-B0DD-4447-B6DF-36BC8586304D}.Debug|x86.ActiveCfg = Debug|Win32
+		{7140581F-B0DD-4447-B6DF-36BC8586304D}.Debug|x86.Build.0 = Debug|Win32
+		{7140581F-B0DD-4447-B6DF-36BC8586304D}.Release|x64.ActiveCfg = Release|x64
+		{7140581F-B0DD-4447-B6DF-36BC8586304D}.Release|x64.Build.0 = Release|x64
+		{7140581F-B0DD-4447-B6DF-36BC8586304D}.Release|x86.ActiveCfg = Release|Win32
+		{7140581F-B0DD-4447-B6DF-36BC8586304D}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

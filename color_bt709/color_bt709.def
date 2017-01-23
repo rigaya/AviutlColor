@@ -1,0 +1,4 @@
+﻿LIBRARY color_bt709.auc
+EXPORTS
+	GetColorPluginTable @1
+
