@@ -75,7 +75,7 @@ static const CSP_CONVERT_MATRIX bt601_bt2020nc = {
 
 static PIXEL_YC inline convert_csp(PIXEL_YC src, CSP_CONVERT_MATRIX matrix) {
     PIXEL_YC dst;
-    dst.y  = (short)CLAMP(src.y + ((src.cb * matrix.y1 + src.cr * matrix.y2) >> 16), SHRT_MIN, SHRT_MAX);
+    dst.y  = (short)CLAMP(src.y + ((src.cb * matrix.y1) >> 16) + ((src.cr * matrix.y2) >> 16), SHRT_MIN, SHRT_MAX);
     dst.cb = (short)CLAMP((src.cb * matrix.cb1 + src.cr * matrix.cb2) >> 14, SHRT_MIN, SHRT_MAX);
     dst.cr = (short)CLAMP((src.cb * matrix.cr1 + src.cr * matrix.cr2) >> 14, SHRT_MIN, SHRT_MAX);
     return dst;
@@ -89,11 +89,19 @@ static PIXEL_YUV inline convert_yc48(PIXEL_YC src) {
     return dst;
 }
 
+static short inline convert_yc48_y(unsigned char y) {
+    return (short)((((int)y << 6) * 19152)>>16) -  299;
+}
+
+static short inline convert_yc48_c(unsigned char c) {
+    return (short)((((int)c << 6) * 18752)>>16) - 2340;
+}
+
 static PIXEL_YC inline convert_yc48(PIXEL_YUV src) {
     PIXEL_YC dst;
-    dst.y  = (short)((src.y * 1197)>>6) - 299;
-    dst.cb = (short)(((src.u - 128)*4681 + 164) >> 8);
-    dst.cr = (short)(((src.v - 128)*4681 + 164) >> 8);
+    dst.y  = convert_yc48_y(src.y);
+    dst.cb = convert_yc48_c(src.u);
+    dst.cr = convert_yc48_c(src.v);
     return dst;
 }
 
@@ -122,14 +130,15 @@ static __forceinline void convert_yuy2_yc48(COLOR_PROC_INFO *cpip, const CSP_CON
         PIXEL_YC *ycp = (PIXEL_YC *)((BYTE *)cpip->ycp + y * pitch);
         BYTE *pixelp = (BYTE *)cpip->pixelp + y * (((width + 1) / 2) * 4);
         for (int x = 0; x < width; x += 2) {
-            PIXEL_YUV yuv ={ pixelp[0], pixelp[1], pixelp[3] };
+            PIXEL_YUV yuv = { pixelp[0], pixelp[1], pixelp[3] };
             *ycp = convert_csp(convert_yc48(yuv), matrix);
             ycp++;
             const int idx = (x + 2 < width) ? 4 : 0;
-            yuv.y = pixelp[2];
-            yuv.u = (BYTE)(((int)pixelp[1] + pixelp[1+idx] + 1) >> 1);
-            yuv.v = (BYTE)(((int)pixelp[3] + pixelp[3+idx] + 1) >> 1);
-            *ycp = convert_csp(convert_yc48(yuv), matrix);
+            PIXEL_YC yctmp;
+            yctmp.y  =  convert_yc48_y(pixelp[2]);
+            yctmp.cb = (convert_yc48_c(pixelp[1]) + convert_yc48_c(pixelp[1+idx]) + 1) >> 1;
+            yctmp.cr = (convert_yc48_c(pixelp[3]) + convert_yc48_c(pixelp[3+idx]) + 1) >> 1;
+            *ycp = convert_csp(yctmp, matrix);
             ycp++;
             pixelp += 4;
         }
