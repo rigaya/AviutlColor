@@ -214,6 +214,7 @@ static __forceinline void convert_matrix_yc48_avx2_base(COLOR_PROC_INFO *cpip, c
         convert_csp_y_cbcr(xY, xCbCrEven, xCbCrOdd, matrix);
         storeu_yc48(ptr_dst, xY, xCbCrEven, xCbCrOdd);
     }
+    _mm256_zeroupper();
 }
 void convert_yc48_btxxx_bt601_avx2(COLOR_PROC_INFO *cpip) {
     convert_matrix_yc48_avx2_base<true>(cpip, btxxx_to_bt601);
@@ -393,6 +394,7 @@ void convert_yuy2_yc48_avx2(COLOR_PROC_INFO *cpip, const CSP_CONVERT_MATRIX matr
 
 void convert_yuy2_yc48_avx2(COLOR_PROC_INFO *cpip) {
     convert_yuy2_yc48_avx2(cpip, btxxx_to_bt601);
+    _mm256_zeroupper();
 }
 
 static __forceinline __m256i convert_y_range_from_yc48(__m256i y0, __m256i yC_Y_MA_16, int Y_RSH_16, const __m256i& yC_YCC, const __m256i& yC_pw_one) {
@@ -479,6 +481,7 @@ static __forceinline void convert_yc48_yuy2_avx2(COLOR_PROC_INFO *cpip, const CS
         }
         convert_yc48_yuy2_simd<false>(ptr_dst, ptr_src, matrix);
     }
+    _mm256_zeroupper();
 }
 
 void convert_yc48_yuy2_avx2(COLOR_PROC_INFO *cpip) {
