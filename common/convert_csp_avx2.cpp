@@ -171,9 +171,9 @@ static __forceinline void storeu_yc48(void *ptr_dst, __m256i& yY, __m256i& yCbCr
 static __forceinline void store_yc48(void *ptr_dst, __m256i& yY, __m256i& yCbCrEven, __m256i& yCbCrOdd) {
     __m256i y0, y1, y2;
     afs_pack_yc48(y0, y1, y2, yY, yCbCrEven, yCbCrOdd);
-    _mm256_store_si256((__m256i *)((char *)ptr_dst +  0), y0);
-    _mm256_store_si256((__m256i *)((char *)ptr_dst + 32), y1);
-    _mm256_store_si256((__m256i *)((char *)ptr_dst + 64), y2);
+    _mm256_stream_si256((__m256i *)((char *)ptr_dst +  0), y0);
+    _mm256_stream_si256((__m256i *)((char *)ptr_dst + 32), y1);
+    _mm256_stream_si256((__m256i *)((char *)ptr_dst + 64), y2);
 }
 
 template<bool SRC_DIB>
@@ -341,15 +341,15 @@ void convert_yuy2_yc48_avx2(COLOR_PROC_INFO *cpip, const CSP_CONVERT_MATRIX matr
             __m256i x0, x1, x2;
             afs_pack_yc48(x0, x1, x2, my0a, mc0a, mc1a);
 
-            _mm256_store_si256((__m256i*)((uint8_t *)ptr_dst +   0), x0);
-            _mm256_store_si256((__m256i*)((uint8_t *)ptr_dst +  32), x1);
-            _mm256_store_si256((__m256i*)((uint8_t *)ptr_dst +  64), x2);
+            _mm256_stream_si256((__m256i*)((uint8_t *)ptr_dst +   0), x0);
+            _mm256_stream_si256((__m256i*)((uint8_t *)ptr_dst +  32), x1);
+            _mm256_stream_si256((__m256i*)((uint8_t *)ptr_dst +  64), x2);
 
             afs_pack_yc48(x0, x1, x2, my0b, mc0b, mc1b);
 
-            _mm256_store_si256((__m256i*)((uint8_t *)ptr_dst +  96), x0);
-            _mm256_store_si256((__m256i*)((uint8_t *)ptr_dst + 128), x1);
-            _mm256_store_si256((__m256i*)((uint8_t *)ptr_dst + 160), x2);
+            _mm256_stream_si256((__m256i*)((uint8_t *)ptr_dst +  96), x0);
+            _mm256_stream_si256((__m256i*)((uint8_t *)ptr_dst + 128), x1);
+            _mm256_stream_si256((__m256i*)((uint8_t *)ptr_dst + 160), x2);
 
             my0a = my4a;
             mc0a = mc4a;
@@ -446,7 +446,7 @@ static __forceinline void convert_yc48_yuy2_simd(void *ptr_dst, const void *ptr_
     yCbCrEven = convert_uv_range_from_yc48(yCbCrEven, _mm256_set1_epi16(UV_OFFSET_x1), yC_UV_L_MA_8_444, UV_L_RSH_8_444, _mm256_set1_epi32(1<<LSFT_YCC_8), yC_pw_one);
 
     __m256i yYUY2 = _mm256_or_si256(_mm256_and_si256(yY, _mm256_set1_epi16(0xff)), _mm256_slli_epi16(yCbCrEven, 8));
-    (aligned_store) ? _mm256_store_si256((__m256i *)ptr_dst, yYUY2) : _mm256_storeu_si256((__m256i *)ptr_dst, yYUY2);
+    (aligned_store) ? _mm256_stream_si256((__m256i *)ptr_dst, yYUY2) : _mm256_storeu_si256((__m256i *)ptr_dst, yYUY2);
 }
 
 static __forceinline void convert_yc48_yuy2_avx2(COLOR_PROC_INFO *cpip, const CSP_CONVERT_MATRIX matrix) {
