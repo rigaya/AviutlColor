@@ -357,6 +357,7 @@ static __forceinline void convert_yuy2_yc48_simd(COLOR_PROC_INFO *cpip, const CS
         mc00 = _mm_shuffle_epi32(mc0a, _MM_SHUFFLE(0, 0, 0, 0));
 
         for (; x < x_fin; x += 16, ptr_dst += 96, ptr_src += 32) {
+            _mm_prefetch(ptr_src + 64, _MM_HINT_NTA);
             m0 = _mm_loadu_si128((const __m128i *)(ptr_src + 32));
             m1 = _mm_loadu_si128((const __m128i *)(ptr_src + 48));
             my4a = _mm_packus_epi16(_mm_and_si128(m0, _mm_set1_epi16(0xff)), _mm_and_si128(m1, _mm_set1_epi16(0xff)));
