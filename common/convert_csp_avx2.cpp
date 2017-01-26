@@ -459,7 +459,7 @@ static __forceinline void convert_yc48_yuy2_simd(void *ptr_dst, const void *ptr_
 void convert_yc48_yuy2_avx2(COLOR_PROC_INFO *cpip) {
     const int height = cpip->h;
     const int width = cpip->w;
-    const int x_fin = width - 16;
+    const int x_fin = width - 32;
     const int pitch = cpip->line_size;
     const int src_pitch = cpip->line_size;
     const int dst_pitch = ((width + 1) / 2) * 4;
@@ -478,8 +478,9 @@ void convert_yc48_yuy2_avx2(COLOR_PROC_INFO *cpip) {
             ptr_src += dw * sizeof(PIXEL_YC);
             ptr_dst += dw * 2;
         }
-        for (; ptr_src < ptr_src_fin; ptr_dst += 32, ptr_src += 96) {
+        for (; ptr_src < ptr_src_fin; ptr_dst += 64, ptr_src += 192) {
             convert_yc48_yuy2_simd<true>(ptr_dst +  0, ptr_src +  0);
+            convert_yc48_yuy2_simd<true>(ptr_dst + 32, ptr_src + 96);
         }
         if (ptr_src_fin < ptr_src) {
             int offset = (ptr_src - ptr_src_fin) / sizeof(PIXEL_YC);
@@ -487,6 +488,7 @@ void convert_yc48_yuy2_avx2(COLOR_PROC_INFO *cpip) {
             ptr_dst -= offset * 2;
         }
         convert_yc48_yuy2_simd<false>(ptr_dst, ptr_src);
+        convert_yc48_yuy2_simd<false>(ptr_dst + 32, ptr_src + 96);
     }
     _mm256_zeroupper();
 }
