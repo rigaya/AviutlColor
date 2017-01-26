@@ -335,6 +335,7 @@ void convert_yuy2_yc48_avx2(COLOR_PROC_INFO *cpip) {
         }
 
         for (; ptr_src < ptr_src_fin; ptr_dst += 192, ptr_src += 64) {
+            _mm_prefetch(ptr_src + 128, _MM_HINT_NTA);
             m0 = _mm256_loadu2_m128i((const __m128i *)(ptr_src +  96), (const __m128i *)(ptr_src + 64));
             m1 = _mm256_loadu2_m128i((const __m128i *)(ptr_src + 112), (const __m128i *)(ptr_src + 80));
             my4a = _mm256_packus_epi16(_mm256_and_si256(m0, _mm256_set1_epi16(0xff)), _mm256_and_si256(m1, _mm256_set1_epi16(0xff)));
@@ -479,7 +480,10 @@ void convert_yc48_yuy2_avx2(COLOR_PROC_INFO *cpip) {
             ptr_dst += dw * 2;
         }
         for (; ptr_src < ptr_src_fin; ptr_dst += 64, ptr_src += 192) {
+            _mm_prefetch(ptr_src + 128, _MM_HINT_NTA);
+            _mm_prefetch(ptr_src + 192, _MM_HINT_NTA);
             convert_yc48_yuy2_simd<true>(ptr_dst +  0, ptr_src +  0);
+            _mm_prefetch(ptr_src + 256, _MM_HINT_NTA);
             convert_yc48_yuy2_simd<true>(ptr_dst + 32, ptr_src + 96);
         }
         if (ptr_src_fin < ptr_src) {
