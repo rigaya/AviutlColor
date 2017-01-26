@@ -52,22 +52,33 @@
 #define _mm256_srli256_si256(a, i) ((i<=16) ? _mm256_alignr_epi8(_mm256_permute2x128_si256(a, a, (0x08<<4) + 0x03), a, i) : _mm256_bsrli_epi128(_mm256_permute2x128_si256(a, a, (0x08<<4) + 0x03), MM_ABS(i-16)))
 #define _mm256_slli256_si256(a, i) ((i<=16) ? _mm256_alignr_epi8(a, _mm256_permute2x128_si256(a, a, (0x00<<4) + 0x08), MM_ABS(16-i)) : _mm256_bslli_epi128(_mm256_permute2x128_si256(a, a, (0x00<<4) + 0x08), MM_ABS(i-16)))
 
+static const __m256i y_btxxx_bt601_y1 = _mm256_set1_epi16(btxxx_to_bt601.y1);
+static const __m256i y_btxxx_bt601_y2 = _mm256_set1_epi16(btxxx_to_bt601.y2);
+static const __m256i y_btxxx_bt601_cbcr_mul = _mm256_broadcastsi128_si256(_mm_set1_epi64x(
+                            (int64_t)btxxx_to_bt601.cb1 |
+                            (((int64_t)btxxx_to_bt601.cb2 << 16) & (int64_t)0x00000000ffff0000) |
+                            (((int64_t)btxxx_to_bt601.cr1 << 32) & (int64_t)0x0000ffff00000000) |
+                            ((int64_t)btxxx_to_bt601.cr2 << 48)));
+static const __m256i y_bt601_btxxx_y1 = _mm256_set1_epi16(bt601_to_btxxx.y1);
+static const __m256i y_bt601_btxxx_y2 = _mm256_set1_epi16(bt601_to_btxxx.y2);
+static const __m256i y_bt601_btxxx_cbcr_mul = _mm256_broadcastsi128_si256(_mm_set1_epi64x(
+                            (int64_t)bt601_to_btxxx.cb1 |
+                            (((int64_t)bt601_to_btxxx.cb2 << 16) & (int64_t)0x00000000ffff0000) |
+                            (((int64_t)bt601_to_btxxx.cr1 << 32) & (int64_t)0x0000ffff00000000) |
+                            ((int64_t)bt601_to_btxxx.cr2 << 48)));
 
-static __forceinline void convert_csp_y_cbcr(__m256i& yY, __m256i& yCbCrEven, __m256i& yCbCrOdd, const CSP_CONVERT_MATRIX matrix) {
+template<bool from_btxxx>
+static __forceinline void convert_csp_y_cbcr(__m256i& yY, __m256i& yCbCrEven, __m256i& yCbCrOdd) {
     __m256i yCb = _mm256_or_si256(_mm256_and_si256(yCbCrEven, _mm256_set1_epi32(0xffff)), _mm256_slli_epi32(yCbCrOdd, 16));
     __m256i yCr = _mm256_or_si256(_mm256_srli_epi32(yCbCrEven, 16), _mm256_andnot_si256(_mm256_set1_epi32(0xffff), yCbCrOdd));
-    yY = _mm256_add_epi16(_mm256_add_epi16(yY, _mm256_mulhi_epi16(yCb, _mm256_set1_epi16(matrix.y1))), _mm256_mulhi_epi16(yCr, _mm256_set1_epi16(matrix.y2)));
+    yY = _mm256_add_epi16(_mm256_add_epi16(yY, _mm256_mulhi_epi16(yCb, (from_btxxx) ? y_btxxx_bt601_y1 : y_bt601_btxxx_y1)), _mm256_mulhi_epi16(yCr, (from_btxxx) ? y_btxxx_bt601_y2 : y_bt601_btxxx_y2));
 
     __m256i yCbCrCbCrEvenLo = _mm256_unpacklo_epi32(yCbCrEven, yCbCrEven);
     __m256i yCbCrCbCrEvenHi = _mm256_unpackhi_epi32(yCbCrEven, yCbCrEven);
     __m256i yCbCrCbCrOddLo = _mm256_unpacklo_epi32(yCbCrOdd, yCbCrOdd);
     __m256i yCbCrCbCrOddHi = _mm256_unpackhi_epi32(yCbCrOdd, yCbCrOdd);
 
-    const __m256i yMul = _mm256_set1_epi64x(
-          (int64_t)matrix.cb1 |
-        (((int64_t)matrix.cb2 << 16) & (int64_t)0x00000000ffff0000) |
-        (((int64_t)matrix.cr1 << 32) & (int64_t)0x0000ffff00000000) |
-         ((int64_t)matrix.cr2 << 48));
+    const __m256i yMul = (from_btxxx) ? y_btxxx_bt601_cbcr_mul : y_bt601_btxxx_cbcr_mul;
     yCbCrEven = _mm256_packs_epi32(_mm256_srai_epi32(_mm256_madd_epi16(yCbCrCbCrEvenLo, yMul), 14),
                                    _mm256_srai_epi32(_mm256_madd_epi16(yCbCrCbCrEvenHi, yMul), 14));
     yCbCrOdd = _mm256_packs_epi32(_mm256_srai_epi32(_mm256_madd_epi16(yCbCrCbCrOddLo, yMul), 14),
@@ -177,7 +188,7 @@ static __forceinline void store_yc48(void *ptr_dst, __m256i& yY, __m256i& yCbCrE
 }
 
 template<bool SRC_DIB>
-static __forceinline void convert_matrix_yc48_avx2_base(COLOR_PROC_INFO *cpip, const CSP_CONVERT_MATRIX matrix) {
+static __forceinline void convert_matrix_yc48_avx2_base(COLOR_PROC_INFO *cpip) {
     const int height = cpip->h;
     const int width = cpip->w;
     const int x_fin = width - 16;
@@ -193,7 +204,7 @@ static __forceinline void convert_matrix_yc48_avx2_base(COLOR_PROC_INFO *cpip, c
         const int dst_mod32 = (size_t)ptr_dst & 0x1f;
         if (dst_mod32) {
             gather_y_uv_from_yc48(ptr_src, xY, xCbCrEven, xCbCrOdd);
-            convert_csp_y_cbcr(xY, xCbCrEven, xCbCrOdd, matrix);
+            convert_csp_y_cbcr<SRC_DIB>(xY, xCbCrEven, xCbCrOdd);
             storeu_yc48(ptr_dst, xY, xCbCrEven, xCbCrOdd);
             int mod6 = dst_mod32 % 6;
             int dw = (32 * (((mod6) ? mod6 : 6)>>1)-dst_mod32);
@@ -202,7 +213,7 @@ static __forceinline void convert_matrix_yc48_avx2_base(COLOR_PROC_INFO *cpip, c
         }
         for (; ptr_src < ptr_src_fin; ptr_dst += 96, ptr_src += 96) {
             gather_y_uv_from_yc48(ptr_src, xY, xCbCrEven, xCbCrOdd);
-            convert_csp_y_cbcr(xY, xCbCrEven, xCbCrOdd, matrix);
+            convert_csp_y_cbcr<SRC_DIB>(xY, xCbCrEven, xCbCrOdd);
             store_yc48(ptr_dst, xY, xCbCrEven, xCbCrOdd);
         }
         if (ptr_src_fin < ptr_src) {
@@ -211,16 +222,16 @@ static __forceinline void convert_matrix_yc48_avx2_base(COLOR_PROC_INFO *cpip, c
             ptr_dst -= offset;
         }
         gather_y_uv_from_yc48(ptr_src, xY, xCbCrEven, xCbCrOdd);
-        convert_csp_y_cbcr(xY, xCbCrEven, xCbCrOdd, matrix);
+        convert_csp_y_cbcr<SRC_DIB>(xY, xCbCrEven, xCbCrOdd);
         storeu_yc48(ptr_dst, xY, xCbCrEven, xCbCrOdd);
     }
     _mm256_zeroupper();
 }
 void convert_yc48_btxxx_bt601_avx2(COLOR_PROC_INFO *cpip) {
-    convert_matrix_yc48_avx2_base<true>(cpip, btxxx_to_bt601);
+    convert_matrix_yc48_avx2_base<true>(cpip);
 }
 void convert_yc48_bt601_btxxx_avx2(COLOR_PROC_INFO *cpip) {
-    convert_matrix_yc48_avx2_base<false>(cpip, bt601_to_btxxx);
+    convert_matrix_yc48_avx2_base<false>(cpip);
 }
 
 static __forceinline void convert_range_y_yuy2_to_yc48(__m256i& y0, __m256i& y1) {
@@ -257,7 +268,7 @@ static __forceinline __m256i afs_uv_interp_linear(const __m256i& y1, const __m25
     return _mm256_srai_epi16(y3, 1);
 }
 
-void convert_yuy2_yc48_avx2(COLOR_PROC_INFO *cpip, const CSP_CONVERT_MATRIX matrix) {
+void convert_yuy2_yc48_avx2(COLOR_PROC_INFO *cpip) {
     const int height = cpip->h;
     const int width = cpip->w;
     const int x_fin = width - 32;
@@ -292,8 +303,8 @@ void convert_yuy2_yc48_avx2(COLOR_PROC_INFO *cpip, const CSP_CONVERT_MATRIX matr
             __m256i mc1a = afs_uv_interp_linear(mc0a, mc0b);
             __m256i mc1b = afs_uv_interp_linear(mc0b, mc4a);
 
-            convert_csp_y_cbcr(my0a, mc0a, mc1a, matrix);
-            convert_csp_y_cbcr(my0b, mc0b, mc1b, matrix);
+            convert_csp_y_cbcr<true>(my0a, mc0a, mc1a);
+            convert_csp_y_cbcr<true>(my0b, mc0b, mc1b);
 
             __m256i x0, x1, x2;
             afs_pack_yc48(x0, x1, x2, my0a, mc0a, mc1a);
@@ -335,8 +346,8 @@ void convert_yuy2_yc48_avx2(COLOR_PROC_INFO *cpip, const CSP_CONVERT_MATRIX matr
             __m256i mc1a = afs_uv_interp_linear(mc0a, mc0b);
             __m256i mc1b = afs_uv_interp_linear(mc0b, mc4a);
 
-            convert_csp_y_cbcr(my0a, mc0a, mc1a, matrix);
-            convert_csp_y_cbcr(my0b, mc0b, mc1b, matrix);
+            convert_csp_y_cbcr<true>(my0a, mc0a, mc1a);
+            convert_csp_y_cbcr<true>(my0b, mc0b, mc1b);
 
             __m256i x0, x1, x2;
             afs_pack_yc48(x0, x1, x2, my0a, mc0a, mc1a);
@@ -374,8 +385,8 @@ void convert_yuy2_yc48_avx2(COLOR_PROC_INFO *cpip, const CSP_CONVERT_MATRIX matr
         __m256i mc1a = afs_uv_interp_linear(mc0a, mc0b);
         __m256i mc1b = afs_uv_interp_linear(mc0b, mc4a);
 
-        convert_csp_y_cbcr(my0a, mc0a, mc1a, matrix);
-        convert_csp_y_cbcr(my0b, mc0b, mc1b, matrix);
+        convert_csp_y_cbcr<true>(my0a, mc0a, mc1a);
+        convert_csp_y_cbcr<true>(my0b, mc0b, mc1b);
 
         __m256i x0, x1, x2;
         afs_pack_yc48(x0, x1, x2, my0a, mc0a, mc1a);
@@ -390,10 +401,6 @@ void convert_yuy2_yc48_avx2(COLOR_PROC_INFO *cpip, const CSP_CONVERT_MATRIX matr
         _mm256_storeu_si256((__m256i*)((uint8_t *)ptr_dst + 128), x1);
         _mm256_storeu_si256((__m256i*)((uint8_t *)ptr_dst + 160), x2);
     }
-}
-
-void convert_yuy2_yc48_avx2(COLOR_PROC_INFO *cpip) {
-    convert_yuy2_yc48_avx2(cpip, btxxx_to_bt601);
     _mm256_zeroupper();
 }
 
@@ -437,11 +444,11 @@ static __forceinline __m256i convert_uv_range_from_yc48(__m256i y0, const __m256
 }
 
 template<bool aligned_store>
-static __forceinline void convert_yc48_yuy2_simd(void *ptr_dst, const void *ptr_src, const CSP_CONVERT_MATRIX matrix) {
+static __forceinline void convert_yc48_yuy2_simd(void *ptr_dst, const void *ptr_src) {
     const __m256i yC_pw_one = _mm256_set1_epi16(1);
     __m256i yY, yCbCrEven, yCbCrOdd;
     gather_y_uv_from_yc48(ptr_src, yY, yCbCrEven, yCbCrOdd);
-    convert_csp_y_cbcr(yY, yCbCrEven, yCbCrOdd, matrix);
+    convert_csp_y_cbcr<false>(yY, yCbCrEven, yCbCrOdd);
     yY = convert_y_range_from_yc48(yY, yC_Y_L_MA_8, Y_L_RSH_8, _mm256_set1_epi32(1<<LSFT_YCC_8), yC_pw_one);
     yCbCrEven = convert_uv_range_from_yc48(yCbCrEven, _mm256_set1_epi16(UV_OFFSET_x1), yC_UV_L_MA_8_444, UV_L_RSH_8_444, _mm256_set1_epi32(1<<LSFT_YCC_8), yC_pw_one);
 
@@ -449,7 +456,7 @@ static __forceinline void convert_yc48_yuy2_simd(void *ptr_dst, const void *ptr_
     (aligned_store) ? _mm256_stream_si256((__m256i *)ptr_dst, yYUY2) : _mm256_storeu_si256((__m256i *)ptr_dst, yYUY2);
 }
 
-static __forceinline void convert_yc48_yuy2_avx2(COLOR_PROC_INFO *cpip, const CSP_CONVERT_MATRIX matrix) {
+void convert_yc48_yuy2_avx2(COLOR_PROC_INFO *cpip) {
     const int height = cpip->h;
     const int width = cpip->w;
     const int x_fin = width - 16;
@@ -464,7 +471,7 @@ static __forceinline void convert_yc48_yuy2_avx2(COLOR_PROC_INFO *cpip, const CS
         char *ptr_dst = ycp_dst_line;
         const int dst_mod32 = (size_t)ptr_dst & 0x1f;
         if (dst_mod32) {
-            convert_yc48_yuy2_simd<false>(ptr_dst, ptr_src, matrix);
+            convert_yc48_yuy2_simd<false>(ptr_dst, ptr_src);
 
             //ずれ修正
             int dw = (32 - dst_mod32) / 2;
@@ -472,18 +479,15 @@ static __forceinline void convert_yc48_yuy2_avx2(COLOR_PROC_INFO *cpip, const CS
             ptr_dst += dw * 2;
         }
         for (; ptr_src < ptr_src_fin; ptr_dst += 32, ptr_src += 96) {
-            convert_yc48_yuy2_simd<true>(ptr_dst, ptr_src, matrix);
+            convert_yc48_yuy2_simd<true>(ptr_dst +  0, ptr_src +  0);
         }
         if (ptr_src_fin < ptr_src) {
             int offset = (ptr_src - ptr_src_fin) / sizeof(PIXEL_YC);
             ptr_src -= offset * sizeof(PIXEL_YC);
             ptr_dst -= offset * 2;
         }
-        convert_yc48_yuy2_simd<false>(ptr_dst, ptr_src, matrix);
+        convert_yc48_yuy2_simd<false>(ptr_dst, ptr_src);
     }
     _mm256_zeroupper();
 }
 
-void convert_yc48_yuy2_avx2(COLOR_PROC_INFO *cpip) {
-    convert_yc48_yuy2_avx2(cpip, bt601_to_btxxx);
-}
