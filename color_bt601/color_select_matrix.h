@@ -28,8 +28,8 @@
 #ifndef __COLOR_SELECT_MATRIX_H__
 #define __COLOR_SELECT_MATRIX_H__
 
-#define MATRIX_CONVERSION 1
-#define btxxx_to_bt601 bt709_bt601
-#define bt601_to_btxxx bt601_bt709
+#define MATRIX_CONVERSION 0
+#define btxxx_to_bt601 matrix_dummy
+#define bt601_to_btxxx matrix_dummy
 
 #endif //__COLOR_SELECT_MATRIX_H__

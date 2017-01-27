@@ -28,6 +28,7 @@
 #ifndef __COLOR_SELECT_MATRIX_H__
 #define __COLOR_SELECT_MATRIX_H__
 
+#define MATRIX_CONVERSION 1
 #define btxxx_to_bt601 bt2020nc_bt601
 #define bt601_to_btxxx bt601_bt2020nc
 

@@ -71,14 +71,24 @@ static const CSP_CONVERT_MATRIX bt601_bt2020nc = {
      1425, 16865  //÷16384
 };
 
+static const CSP_CONVERT_MATRIX matrix_dummy = {
+    0, 0, //÷65536
+    16384, 0, //÷16384
+    0, 16384  //÷16384
+};
+
 #include "color_select_matrix.h"
 
 static PIXEL_YC inline convert_csp(PIXEL_YC src, CSP_CONVERT_MATRIX matrix) {
+#if MATRIX_CONVERSION
     PIXEL_YC dst;
     dst.y  = (short)CLAMP(src.y + ((src.cb * matrix.y1) >> 16) + ((src.cr * matrix.y2) >> 16), SHRT_MIN, SHRT_MAX);
     dst.cb = (short)CLAMP((src.cb * matrix.cb1 + src.cr * matrix.cb2) >> 14, SHRT_MIN, SHRT_MAX);
     dst.cr = (short)CLAMP((src.cb * matrix.cr1 + src.cr * matrix.cr2) >> 14, SHRT_MIN, SHRT_MAX);
     return dst;
+#else
+    return src;
+#endif
 }
 
 static PIXEL_YUV inline convert_yc48(PIXEL_YC src) {

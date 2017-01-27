@@ -75,7 +75,46 @@ static __forceinline __m128i _mm_packus_epi32_simd(__m128i a, __m128i b) {
 #endif
 }
 
+static void __forceinline memcpy_sse(char *dst, const char *src, int size) {
+    if (size < 64) {
+        for (int i = 0; i < size; i++)
+            dst[i] = src[i];
+        return;
+    }
+    char *dst_fin = (char *)dst + size;
+    char *dst_aligned_fin = (char *)(((size_t)(dst_fin + 15) & ~15) - 64);
+    __m128 x0, x1, x2, x3;
+    const int start_align_diff = (int)((size_t)dst & 15);
+    if (start_align_diff) {
+        x0 = _mm_loadu_ps((float*)src);
+        _mm_storeu_ps((float*)dst, x0);
+        dst += 16 - start_align_diff;
+        src += 16 - start_align_diff;
+    }
+    for (; dst < dst_aligned_fin; dst += 64, src += 64) {
+        x0 = _mm_loadu_ps((float*)(src +  0));
+        x1 = _mm_loadu_ps((float*)(src + 16));
+        x2 = _mm_loadu_ps((float*)(src + 32));
+        x3 = _mm_loadu_ps((float*)(src + 48));
+        _mm_store_ps((float*)(dst +  0), x0);
+        _mm_store_ps((float*)(dst + 16), x1);
+        _mm_store_ps((float*)(dst + 32), x2);
+        _mm_store_ps((float*)(dst + 48), x3);
+    }
+    char *dst_tmp = dst_fin - 64;
+    src -= (dst - dst_tmp);
+    x0 = _mm_loadu_ps((float*)(src +  0));
+    x1 = _mm_loadu_ps((float*)(src + 16));
+    x2 = _mm_loadu_ps((float*)(src + 32));
+    x3 = _mm_loadu_ps((float*)(src + 48));
+    _mm_storeu_ps((float*)(dst_tmp +  0), x0);
+    _mm_storeu_ps((float*)(dst_tmp + 16), x1);
+    _mm_storeu_ps((float*)(dst_tmp + 32), x2);
+    _mm_storeu_ps((float*)(dst_tmp + 48), x3);
+}
+
 static __forceinline void convert_csp_y_cbcr(__m128i& xY, __m128i& xCbCrEven, __m128i& xCbCrOdd, const CSP_CONVERT_MATRIX matrix) {
+#if MATRIX_CONVERSION
     __m128i xCb = _mm_or_si128(_mm_and_si128(xCbCrEven, _mm_set1_epi32(0xffff)), _mm_slli_epi32(xCbCrOdd, 16));
     __m128i xCr = _mm_or_si128(_mm_srli_epi32(xCbCrEven, 16), _mm_andnot_si128(_mm_set1_epi32(0xffff), xCbCrOdd));
     xY = _mm_add_epi16(_mm_add_epi16(xY, _mm_mulhi_epi16(xCb, _mm_set1_epi16(matrix.y1))), _mm_mulhi_epi16(xCr, _mm_set1_epi16(matrix.y2)));
@@ -94,6 +133,7 @@ static __forceinline void convert_csp_y_cbcr(__m128i& xY, __m128i& xCbCrEven, __
                                 _mm_srai_epi32(_mm_madd_epi16(xCbCrCbCrEvenHi, xMul), 14));
     xCbCrOdd = _mm_packs_epi32(_mm_srai_epi32(_mm_madd_epi16(xCbCrCbCrOddLo, xMul), 14),
                                _mm_srai_epi32(_mm_madd_epi16(xCbCrCbCrOddHi, xMul), 14));
+#endif //#if MATRIX_CONVERSION
 }
 
 static __forceinline void gather_y_uv_from_yc48(__m128i& x0, __m128i& x1, __m128i& x2) {
@@ -285,6 +325,7 @@ static __forceinline void convert_matrix_yc48_simd(COLOR_PROC_INFO *cpip, const 
     char *ycp_dst_line = (char *)((SRC_DIB) ? cpip->ycp : cpip->pixelp);
     __m128i xY, xCbCrEven, xCbCrOdd;
     for (int y = 0; y < height; y++, ycp_dst_line += dst_pitch, ycp_src_line += src_pitch) {
+#if MATRIX_CONVERSION
         const char *ptr_src = ycp_src_line;
         char *ptr_dst = ycp_dst_line;
         int x = 0;
@@ -301,6 +342,9 @@ static __forceinline void convert_matrix_yc48_simd(COLOR_PROC_INFO *cpip, const 
         gather_y_uv_from_yc48(ptr_src, xY, xCbCrEven, xCbCrOdd);
         convert_csp_y_cbcr(xY, xCbCrEven, xCbCrOdd, matrix);
         store_yc48(ptr_dst, xY, xCbCrEven, xCbCrOdd);
+#else
+        memcpy_sse(ycp_dst_line, ycp_src_line, sizeof(PIXEL_YC) * cpip->w);
+#endif
     }
 }
 

@@ -11,6 +11,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "color_bt709", "color_bt709\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "color_bt709_test", "color_bt709_test\color_bt709_test.vcxproj", "{DC3E4A0A-04A7-45E0-B719-05CAAB204F08}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "color_bt601", "color_bt601\color_bt601.vcxproj", "{A97D5BDE-B079-47BA-8041-C5199CE5BE55}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -51,6 +53,14 @@ Global
 		{DC3E4A0A-04A7-45E0-B719-05CAAB204F08}.Release|x64.Build.0 = Release|x64
 		{DC3E4A0A-04A7-45E0-B719-05CAAB204F08}.Release|x86.ActiveCfg = Release|Win32
 		{DC3E4A0A-04A7-45E0-B719-05CAAB204F08}.Release|x86.Build.0 = Release|Win32
+		{A97D5BDE-B079-47BA-8041-C5199CE5BE55}.Debug|x64.ActiveCfg = Debug|x64
+		{A97D5BDE-B079-47BA-8041-C5199CE5BE55}.Debug|x64.Build.0 = Debug|x64
+		{A97D5BDE-B079-47BA-8041-C5199CE5BE55}.Debug|x86.ActiveCfg = Debug|Win32
+		{A97D5BDE-B079-47BA-8041-C5199CE5BE55}.Debug|x86.Build.0 = Debug|Win32
+		{A97D5BDE-B079-47BA-8041-C5199CE5BE55}.Release|x64.ActiveCfg = Release|x64
+		{A97D5BDE-B079-47BA-8041-C5199CE5BE55}.Release|x64.Build.0 = Release|x64
+		{A97D5BDE-B079-47BA-8041-C5199CE5BE55}.Release|x86.ActiveCfg = Release|Win32
+		{A97D5BDE-B079-47BA-8041-C5199CE5BE55}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
