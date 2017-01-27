@@ -31,6 +31,7 @@
 #include <cstdint>
 
 void get_func(convert_color_func *func_list, uint32_t simd_avail);
+uint32_t get_availableSIMD();
 
 static int compare_yc48(const PIXEL_YC *ycp0, const PIXEL_YC *ycp1, int w, int pitch_pixels, int h) {
     int ret = 0;
@@ -124,13 +125,17 @@ int run_test(int w, int yc48_pitch, int h) {
     set_random_yuy2(dib_yuy20, w * h, mt);
     set_random_yuy2(dib_yuy21, w * h, mt);
 
-    uint32_t SIMD_LIST[] = { SSE2, SSSE3, SSE41, AVX, AVX2 };
+    const uint32_t simd_avail = get_availableSIMD();
+    const uint32_t SIMD_LIST[] = { SSE2, SSSE3, SSE41, AVX, AVX2 };
     uint32_t check_simd = 0x00;
     for (int isimd = 0; isimd < _countof(SIMD_LIST); isimd++) {
         auto check = [&](int ret, const char *check_type) {
             fprintf(stderr, "%4dx%4d, SIMD %s, %s: %s\n", w, h, simd_str(check_simd), check_type, ret ? "Error" : "OK");
             return ret;
         };
+        if ((simd_avail & SIMD_LIST[isimd]) != SIMD_LIST[isimd]) {
+            continue;
+        }
         check_simd |= SIMD_LIST[isimd];
         convert_color_func func_simd;
         get_func(&func_simd, check_simd);
