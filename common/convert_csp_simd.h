@@ -391,14 +391,14 @@ static __forceinline void convert_yuy2_yc48_simd(COLOR_PROC_INFO *cpip, const CS
         char *ptr_dst = ycp_dst_line;
         int x = 0;
         __m128i m0, m1;
-        __m128i my0a, my0b, my4a, mc00, mc0a, mc0b, mc4a, mc4b;
+        __m128i my0a, my0b, my4a, mc0a, mc0b, mc4a, mc4b;
         m0 = _mm_loadu_si128((const __m128i *)ptr_src);
         m1 = _mm_loadu_si128((const __m128i *)(ptr_src + 16));
 
         my0a = _mm_packus_epi16(_mm_and_si128(m0, _mm_set1_epi16(0xff)), _mm_and_si128(m1, _mm_set1_epi16(0xff)));
         mc0a = _mm_packus_epi16(_mm_srli_epi16(m0, 8), _mm_srli_epi16(m1, 8));
         convert_range_c_yuy2_to_yc48(mc0a, mc0b);
-        mc00 = _mm_shuffle_epi32(mc0a, _MM_SHUFFLE(0, 0, 0, 0));
+        //mc00 = _mm_shuffle_epi32(mc0a, _MM_SHUFFLE(0, 0, 0, 0));
 
         for (; x < x_fin; x += 16, ptr_dst += 96, ptr_src += 32) {
             _mm_prefetch(ptr_src + 64, _MM_HINT_NTA);
@@ -443,7 +443,7 @@ static __forceinline void convert_yuy2_yc48_simd(COLOR_PROC_INFO *cpip, const CS
             my0a = _mm_packus_epi16(_mm_and_si128(m0, _mm_set1_epi16(0xff)), _mm_and_si128(m1, _mm_set1_epi16(0xff)));
             mc0a = _mm_packus_epi16(_mm_srli_epi16(m0, 8), _mm_srli_epi16(m1, 8));
             convert_range_c_yuy2_to_yc48(mc0a, mc0b);
-            mc00 = _mm_shuffle_epi32(mc0a, _MM_SHUFFLE(0, 0, 0, 0));
+            //mc00 = _mm_shuffle_epi32(mc0a, _MM_SHUFFLE(0, 0, 0, 0));
         }
 
         convert_range_y_yuy2_to_yc48(my0a, my0b);
