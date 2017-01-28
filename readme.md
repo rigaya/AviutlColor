@@ -5,7 +5,7 @@ by rigaya
 Aviutlの色空間変換プラグインです。
 
 ## 配布場所 & 更新履歴  
-[rigayaの日記兼メモ帳＞＞](http://rigaya34589.blog135.fc2.com/)  
+[rigayaの日記兼メモ帳＞＞](http://rigaya34589.blog135.fc2.com/blog-category-25.html)  
 
 ## 基本動作環境  
 Windows 7, 8, 8.1, 10 (x86/x64)  
