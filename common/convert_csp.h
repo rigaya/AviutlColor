@@ -48,9 +48,9 @@ struct CSP_CONVERT_MATRIX {
 typedef void (*convert_func)(COLOR_PROC_INFO *cpip);
 
 static const CSP_CONVERT_MATRIX bt709_bt601 = {
-     6809, 13249, //÷65536
-    16218, -1813, //÷16384
-    -1187, 16112  //÷16384
+     6650, 12940, //÷65536
+    16202, -1811, //÷16384
+    -1186, 16096  //÷16384
 };
 
 static const CSP_CONVERT_MATRIX bt2020nc_bt601 = {
@@ -60,9 +60,9 @@ static const CSP_CONVERT_MATRIX bt2020nc_bt601 = {
 };
 
 static const CSP_CONVERT_MATRIX bt601_bt709 = {
-    -7922, -14351, //÷65536
-    16689,   1878, //÷16384
-     1230,  16799  //÷16384
+    -7753, -14044, //÷65536
+    16706,   1880, //÷16384
+     1231,  16816  //÷16384
 };
 
 static const CSP_CONVERT_MATRIX bt601_bt2020nc = {
