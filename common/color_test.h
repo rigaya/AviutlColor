@@ -125,6 +125,7 @@ int run_test(int w, int yc48_pitch, int h) {
     set_random_yuy2(dib_yuy20, w * h, mt);
     set_random_yuy2(dib_yuy21, w * h, mt);
 
+    int max_threads = 1;
     const uint32_t simd_avail = get_availableSIMD();
     const uint32_t SIMD_LIST[] = { SSE2, SSSE3, SSE41, AVX, AVX2 };
     uint32_t check_simd = 0x00;
@@ -143,33 +144,33 @@ int run_test(int w, int yc48_pitch, int h) {
         //YUY2 -> YC48
         cpinfo.pixelp = dib_yuy20;
         cpinfo.ycp = ycp0;
-        func_none.yuy2_yc48(&cpinfo);
+        func_none.yuy2_yc48(0, 1, &cpinfo, &max_threads);
         cpinfo.ycp = ycp1;
-        func_simd.yuy2_yc48(&cpinfo);
+        func_simd.yuy2_yc48(0, 1, &cpinfo, &max_threads);
         ret |= check(compare_yc48(ycp0, ycp1, w, yc48_pitch, h), "YUY2      -> YC48     ");
 
         //YC48 -> YUY2
         cpinfo.ycp = ycp0;
         cpinfo.pixelp = dib_yuy20;
-        func_none.yc48_yuy2(&cpinfo);
+        func_none.yc48_yuy2(0, 1, &cpinfo, &max_threads);
         cpinfo.pixelp = dib_yuy21;
-        func_simd.yc48_yuy2(&cpinfo);
+        func_simd.yc48_yuy2(0, 1, &cpinfo, &max_threads);
         ret |= check(compare_yuy2(dib_yuy20, dib_yuy21, w, h), "YC48      -> YUY2     ");
 
         //YC48(DIB) -> YC48
         cpinfo.pixelp = dib_ycp0;
         cpinfo.ycp = ycp0;
-        func_none.yc48_btxxx_bt601(&cpinfo);
+        func_none.yc48_btxxx_bt601(0, 1, &cpinfo, &max_threads);
         cpinfo.ycp = ycp1;
-        func_simd.yc48_btxxx_bt601(&cpinfo);
+        func_simd.yc48_btxxx_bt601(0, 1, &cpinfo, &max_threads);
         ret |= check(compare_yc48(ycp0, ycp1, w, yc48_pitch, h), "YC48(DIB) -> YC48     ");
 
         //YC48 -> YC48(DIB)
         cpinfo.ycp = ycp0;
         cpinfo.pixelp = dib_ycp0;
-        func_none.yc48_bt601_btxxx(&cpinfo);
+        func_none.yc48_bt601_btxxx(0, 1, &cpinfo, &max_threads);
         cpinfo.pixelp = dib_ycp1;
-        func_simd.yc48_bt601_btxxx(&cpinfo);
+        func_simd.yc48_bt601_btxxx(0, 1, &cpinfo, &max_threads);
         ret |= check(compare_yc48(dib_ycp0, dib_ycp1, w, w, h), "YC48      -> YC48(DIB)");
     }
 

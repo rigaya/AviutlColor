@@ -27,6 +27,8 @@
 
 #define NOMINMAX
 #include <windows.h>
+#include <shlwapi.h>
+#pragma comment(lib, "shlwapi.lib")
 #include "color.h"
 #include "convert_csp.h"
 #include "color_simd.h"
@@ -34,6 +36,7 @@
 BOOL func_init(void);
 
 convert_color_func g_func_list;
+int max_threads;
 
 //---------------------------------------------------------------------
 //		色変換プラグイン構造体定義
@@ -41,7 +44,7 @@ convert_color_func g_func_list;
 COLOR_PLUGIN_TABLE color_plugin_table = {
     NULL,												//	フラグ
     "BT.2020nc (st)",									//	プラグインの名前
-    "BT.2020nc (st) version 0.00 by rigaya",		//	プラグインの情報
+    "BT.2020nc (st) version 0.01 by rigaya",		//	プラグインの情報
     func_init,				        					//	DLL開始時に呼ばれる関数へのポインタ (NULLなら呼ばれません)
     NULL,												//	DLL終了時に呼ばれる関数へのポインタ (NULLなら呼ばれません)
     func_pixel2yc,										//	DIB形式の画像からからPIXEL_YC形式の画像に変換します (NULLなら呼ばれません)
@@ -52,6 +55,19 @@ COLOR_PLUGIN_TABLE color_plugin_table = {
 //---------------------------------------------------------------------
 //		色変換プラグイン構造体のポインタを渡す関数
 //---------------------------------------------------------------------
+#pragma warning (push)
+#pragma warning (disable: 4100)
+BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
+    char ini_name[1024];
+    GetModuleFileName(hinstDLL, ini_name, _countof(ini_name));
+    auto ptr = PathFindFileName(ini_name);
+    if (ptr) ptr[0] = '\0';
+    strcat_s(ini_name, "AviutlColor.ini");
+    max_threads = GetPrivateProfileInt("AviutlColor", "threads", 1, ini_name);
+    return TRUE;
+}
+#pragma warning (pop)
+
 EXTERN_C COLOR_PLUGIN_TABLE __declspec(dllexport) * __stdcall GetColorPluginTable( void )
 {
     return &color_plugin_table;
@@ -72,10 +88,14 @@ BOOL func_init(void) {
 //---------------------------------------------------------------------
 BOOL func_pixel2yc( COLOR_PROC_INFO *cpip ) {
     if (cpip->format == MAKEFOURCC('Y', 'U', 'Y', '2')) {
-        g_func_list.yuy2_yc48(cpip);
+        (max_threads <= 1)
+            ? g_func_list.yuy2_yc48(0, 1, cpip, &max_threads)
+            : cpip->exec_multi_thread_func(g_func_list.yuy2_yc48, cpip, &max_threads);
         return TRUE;
     } else if (cpip->format == MAKEFOURCC('Y', 'C', '4', '8')) {
-        g_func_list.yc48_btxxx_bt601(cpip);
+        (max_threads <= 1)
+            ? g_func_list.yc48_btxxx_bt601(0, 1, cpip, &max_threads)
+            : cpip->exec_multi_thread_func(g_func_list.yc48_btxxx_bt601, cpip, &max_threads);
         return TRUE;
     }
     //	RGBはAviUtl本体の変換に任せる
@@ -88,10 +108,14 @@ BOOL func_pixel2yc( COLOR_PROC_INFO *cpip ) {
 //---------------------------------------------------------------------
 BOOL func_yc2pixel( COLOR_PROC_INFO *cpip ) {
     if (cpip->format == MAKEFOURCC('Y', 'U', 'Y', '2')) {
-        g_func_list.yc48_yuy2(cpip);
+        (max_threads <= 1)
+            ? g_func_list.yc48_yuy2(0, 1, cpip, &max_threads)
+            : cpip->exec_multi_thread_func(g_func_list.yc48_yuy2, cpip, &max_threads);
         return TRUE;
     } else if (cpip->format == MAKEFOURCC('Y', 'C', '4', '8')) {
-        g_func_list.yc48_bt601_btxxx(cpip);
+        (max_threads <= 1)
+            ? g_func_list.yc48_bt601_btxxx(0, 1, cpip, &max_threads)
+            : cpip->exec_multi_thread_func(g_func_list.yc48_bt601_btxxx, cpip, &max_threads);
         return TRUE;
     }
     //	RGBはAviUtl本体の変換に任せる

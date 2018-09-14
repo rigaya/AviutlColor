@@ -29,6 +29,7 @@
 #define __COLOR_SIMD_H__
 
 #include <cstdint>
+#include "color.h"
 
 enum : uint32_t {
     NONE   = 0x0000,
@@ -43,10 +44,10 @@ enum : uint32_t {
 };
 
 struct convert_color_func {
-    convert_func yuy2_yc48;
-    convert_func yc48_yuy2;
-    convert_func yc48_btxxx_bt601;
-    convert_func yc48_bt601_btxxx;
+    MULTI_THREAD_FUNC yuy2_yc48;
+    MULTI_THREAD_FUNC yc48_yuy2;
+    MULTI_THREAD_FUNC yc48_btxxx_bt601;
+    MULTI_THREAD_FUNC yc48_bt601_btxxx;
 };
 
 void get_func(convert_color_func *func_list);

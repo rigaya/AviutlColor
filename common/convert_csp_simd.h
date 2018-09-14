@@ -219,7 +219,7 @@ static __forceinline void gather_y_u_v_from_yc48(__m128i& x0, __m128i& x1, __m12
 
                                                         //select uv
     xMask = _mm_srli_si128(_mm_cmpeq_epi8(xMask, xMask), 8); //0x00000000, 0x00000000, 0xffffffff, 0xffffffff
-    x6 = select_by_mask(_mm_srli_si128(x1, 2), _mm_srli_si128(x2, 2), xMask); //x  x v4 u4 v6 u6 x  x 
+    x6 = select_by_mask(_mm_srli_si128(x1, 2), _mm_srli_si128(x2, 2), xMask); //x  x v4 u4 v6 u6 x  x
     x7 = select_by_mask(x0, x1, xMask);               //x  x  v1 u1 v3 u3 x  x
     xMask = _mm_slli_si128(xMask, 4);                 //0x00000000, 0xffffffff, 0xffffffff, 0x00000000
     x0 = _mm_alignr_epi8_simd(x1, x0, 2);             //v2 u2  x  x  x  x v0 u0
@@ -315,16 +315,18 @@ static __forceinline void store_yc48(void *ptr_dst, __m128i& xY, __m128i& xCbCrE
 }
 
 template<bool SRC_DIB>
-static __forceinline void convert_matrix_yc48_simd(COLOR_PROC_INFO *cpip, const CSP_CONVERT_MATRIX matrix) {
+static __forceinline void convert_matrix_yc48_simd(COLOR_PROC_INFO *cpip, int thread_id, int max_threads, const CSP_CONVERT_MATRIX matrix) {
     const int height = cpip->h;
+    const int y_start = (height * (thread_id + 0)) / max_threads;
+    const int y_fin   = (height * (thread_id + 1)) / max_threads;
     const int width = cpip->w;
     const int x_fin = width - 8;
     int src_pitch = (SRC_DIB) ? sizeof(PIXEL_YC) * cpip->w : cpip->line_size;
     int dst_pitch = (SRC_DIB) ? cpip->line_size : sizeof(PIXEL_YC) * cpip->w;
-    const char *ycp_src_line = (const char *)((SRC_DIB) ? cpip->pixelp : cpip->ycp);
-    char *ycp_dst_line = (char *)((SRC_DIB) ? cpip->ycp : cpip->pixelp);
+    const char *ycp_src_line = (const char *)((SRC_DIB) ? cpip->pixelp : cpip->ycp) + y_start * src_pitch;
+    char *ycp_dst_line = (char *)((SRC_DIB) ? cpip->ycp : cpip->pixelp) + y_start * dst_pitch;
     __m128i xY, xCbCrEven, xCbCrOdd;
-    for (int y = 0; y < height; y++, ycp_dst_line += dst_pitch, ycp_src_line += src_pitch) {
+    for (int y = y_start; y < y_fin; y++, ycp_dst_line += dst_pitch, ycp_src_line += src_pitch) {
 #if MATRIX_CONVERSION
         const char *ptr_src = ycp_src_line;
         char *ptr_dst = ycp_dst_line;
@@ -378,15 +380,17 @@ static __forceinline __m128i afs_uv_interp_linear(const __m128i& x1, const __m12
     return _mm_srai_epi16(x3, 1);
 }
 
-static __forceinline void convert_yuy2_yc48_simd(COLOR_PROC_INFO *cpip, const CSP_CONVERT_MATRIX matrix) {
+static __forceinline void convert_yuy2_yc48_simd(COLOR_PROC_INFO *cpip, int thread_id, int max_threads, const CSP_CONVERT_MATRIX matrix) {
     const int height = cpip->h;
+    const int y_start = (height * (thread_id + 0)) / max_threads;
+    const int y_fin   = (height * (thread_id + 1)) / max_threads;
     const int width = cpip->w;
     const int x_fin = width - 16;
     const int dst_pitch = cpip->line_size;
     const int src_pitch = ((width + 1) / 2) * 4;
-    const char *ycp_src_line = (const char *)cpip->pixelp;
-    char *ycp_dst_line = (char *)cpip->ycp;
-    for (int y = 0; y < height; y++, ycp_dst_line += dst_pitch, ycp_src_line += src_pitch) {
+    const char *ycp_src_line = (const char *)cpip->pixelp + y_start * src_pitch;
+    char *ycp_dst_line = (char *)cpip->ycp + y_start * dst_pitch;
+    for (int y = y_start; y < y_fin; y++, ycp_dst_line += dst_pitch, ycp_src_line += src_pitch) {
         const char *ptr_src = ycp_src_line;
         char *ptr_dst = ycp_dst_line;
         int x = 0;
@@ -522,16 +526,18 @@ static __forceinline void convert_yc48_yuy2_simd(void *ptr_dst, const void *ptr_
         _mm_or_si128(_mm_and_si128(xY, _mm_set1_epi16(0xff)), _mm_slli_epi16(xCbCrEven, 8)));
 }
 
-static __forceinline void convert_yc48_yuy2_simd(COLOR_PROC_INFO *cpip, const CSP_CONVERT_MATRIX matrix) {
+static __forceinline void convert_yc48_yuy2_simd(COLOR_PROC_INFO *cpip, int thread_id, int max_threads, const CSP_CONVERT_MATRIX matrix) {
     const int height = cpip->h;
+    const int y_start = (height * (thread_id + 0)) / max_threads;
+    const int y_fin   = (height * (thread_id + 1)) / max_threads;
     const int width = cpip->w;
     const int x_fin = width - 8;
     const int pitch = cpip->line_size;
     const int src_pitch = cpip->line_size;
     const int dst_pitch = ((width + 1) / 2) * 4;
-    const char *ycp_src_line = (const char *)cpip->ycp;
-    char *ycp_dst_line = (char *)cpip->pixelp;
-    for (int y = 0; y < height; y++, ycp_dst_line += dst_pitch, ycp_src_line += src_pitch) {
+    const char *ycp_src_line = (const char *)cpip->ycp + y_start * src_pitch;
+    char *ycp_dst_line = (char *)cpip->pixelp + y_start * dst_pitch;
+    for (int y = y_start; y < y_fin; y++, ycp_dst_line += dst_pitch, ycp_src_line += src_pitch) {
         const char *ptr_src = ycp_src_line;
         char *ptr_dst = ycp_dst_line;
         int x = 0;

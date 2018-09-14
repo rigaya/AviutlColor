@@ -35,16 +35,33 @@
 #include <windows.h>
 #include "color.h"
 #include "convert_csp_simd.h"
+#include <algorithm>
 
-void convert_yuy2_yc48_sse41(COLOR_PROC_INFO *cpip) {
-    convert_yuy2_yc48_simd(cpip, btxxx_to_bt601);
+void convert_yuy2_yc48_sse41(int thread_id, int thread_num, void *param1, void *param2) {
+    COLOR_PROC_INFO *cpip = (COLOR_PROC_INFO *)param1;
+    const int max_threads = std::min(thread_num, *(int *)param2);
+    if (thread_id >= max_threads) return;
+
+    convert_yuy2_yc48_simd(cpip, thread_id, max_threads, btxxx_to_bt601);
 }
-void convert_yc48_yuy2_sse41(COLOR_PROC_INFO *cpip) {
-    convert_yc48_yuy2_simd(cpip, bt601_to_btxxx);
+void convert_yc48_yuy2_sse41(int thread_id, int thread_num, void *param1, void *param2) {
+    COLOR_PROC_INFO *cpip = (COLOR_PROC_INFO *)param1;
+    const int max_threads = std::min(thread_num, *(int *)param2);
+    if (thread_id >= max_threads) return;
+
+    convert_yc48_yuy2_simd(cpip, thread_id, max_threads, bt601_to_btxxx);
 }
-void convert_yc48_btxxx_bt601_sse41(COLOR_PROC_INFO *cpip) {
-    convert_matrix_yc48_simd<true>(cpip, btxxx_to_bt601);
+void convert_yc48_btxxx_bt601_sse41(int thread_id, int thread_num, void *param1, void *param2) {
+    COLOR_PROC_INFO *cpip = (COLOR_PROC_INFO *)param1;
+    const int max_threads = std::min(thread_num, *(int *)param2);
+    if (thread_id >= max_threads) return;
+
+    convert_matrix_yc48_simd<true>(cpip, thread_id, max_threads, btxxx_to_bt601);
 }
-void convert_yc48_bt601_btxxx_sse41(COLOR_PROC_INFO *cpip) {
-    convert_matrix_yc48_simd<false>(cpip, bt601_to_btxxx);
+void convert_yc48_bt601_btxxx_sse41(int thread_id, int thread_num, void *param1, void *param2) {
+    COLOR_PROC_INFO *cpip = (COLOR_PROC_INFO *)param1;
+    const int max_threads = std::min(thread_num, *(int *)param2);
+    if (thread_id >= max_threads) return;
+
+    convert_matrix_yc48_simd<false>(cpip, thread_id, max_threads, bt601_to_btxxx);
 }

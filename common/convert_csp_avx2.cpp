@@ -37,6 +37,7 @@
 #include "color.h"
 #include "convert_const.h"
 #include "convert_csp.h"
+#include <algorithm>
 
 #define _mm256_store_switch_si256(ptr, ymm)  ((aligned_store) ? _mm256_store_si256(ptr, ymm)  : _mm256_storeu_si256(ptr, ymm))
 #define _mm256_stream_switch_si256(ptr, ymm) ((aligned_store) ? _mm256_stream_si256(ptr, ymm) : _mm256_storeu_si256(ptr, ymm))
@@ -232,16 +233,18 @@ static __forceinline void store_yc48(void *ptr_dst, __m256i& yY, __m256i& yCbCrE
 }
 
 template<bool SRC_DIB>
-static __forceinline void convert_matrix_yc48_avx2_base(COLOR_PROC_INFO *cpip) {
+static __forceinline void convert_matrix_yc48_avx2_base(COLOR_PROC_INFO *cpip, int thread_id, int max_threads) {
     const int height = cpip->h;
+    const int y_start = (height * (thread_id + 0)) / max_threads;
+    const int y_fin   = (height * (thread_id + 1)) / max_threads;
     const int width = cpip->w;
     const int x_fin = width - 16;
     int src_pitch = (SRC_DIB) ? sizeof(PIXEL_YC) * cpip->w : cpip->line_size;
     int dst_pitch = (SRC_DIB) ? cpip->line_size : sizeof(PIXEL_YC) * cpip->w;
-    const char *ycp_src_line = (const char *)((SRC_DIB) ? cpip->pixelp : cpip->ycp);
-    char *ycp_dst_line = (char *)((SRC_DIB) ? cpip->ycp : cpip->pixelp);
+    const char *ycp_src_line = (const char *)((SRC_DIB) ? cpip->pixelp : cpip->ycp) + y_start * src_pitch;
+    char *ycp_dst_line = (char *)((SRC_DIB) ? cpip->ycp : cpip->pixelp) + y_start * dst_pitch;
     __m256i xY, xCbCrEven, xCbCrOdd;
-    for (int y = 0; y < height; y++, ycp_dst_line += dst_pitch, ycp_src_line += src_pitch) {
+    for (int y = y_start; y < y_fin; y++, ycp_dst_line += dst_pitch, ycp_src_line += src_pitch) {
 #if MATRIX_CONVERSION
         const char *ptr_src = ycp_src_line;
         const char *ptr_src_fin = ptr_src + x_fin * sizeof(PIXEL_YC);
@@ -275,11 +278,19 @@ static __forceinline void convert_matrix_yc48_avx2_base(COLOR_PROC_INFO *cpip) {
     }
     _mm256_zeroupper();
 }
-void convert_yc48_btxxx_bt601_avx2(COLOR_PROC_INFO *cpip) {
-    convert_matrix_yc48_avx2_base<true>(cpip);
+void convert_yc48_btxxx_bt601_avx2(int thread_id,int thread_num,void *param1,void *param2) {
+    COLOR_PROC_INFO *cpip = (COLOR_PROC_INFO *)param1;
+    const int max_threads = std::min(thread_num, *(int *)param2);
+    if (thread_id >= max_threads) return;
+
+    convert_matrix_yc48_avx2_base<true>(cpip, thread_id, max_threads);
 }
-void convert_yc48_bt601_btxxx_avx2(COLOR_PROC_INFO *cpip) {
-    convert_matrix_yc48_avx2_base<false>(cpip);
+void convert_yc48_bt601_btxxx_avx2(int thread_id,int thread_num,void *param1,void *param2) {
+    COLOR_PROC_INFO *cpip = (COLOR_PROC_INFO *)param1;
+    const int max_threads = std::min(thread_num, *(int *)param2);
+    if (thread_id >= max_threads) return;
+
+    convert_matrix_yc48_avx2_base<false>(cpip, thread_id, max_threads);
 }
 
 static __forceinline void convert_range_y_yuy2_to_yc48(__m256i& y0, __m256i& y1) {
@@ -316,15 +327,21 @@ static __forceinline __m256i afs_uv_interp_linear(const __m256i& y1, const __m25
     return _mm256_srai_epi16(y3, 1);
 }
 
-void convert_yuy2_yc48_avx2(COLOR_PROC_INFO *cpip) {
+void convert_yuy2_yc48_avx2(int thread_id, int thread_num, void *param1, void *param2) {
+    COLOR_PROC_INFO *cpip = (COLOR_PROC_INFO *)param1;
+    const int max_threads = std::min(thread_num, *(int *)param2);
+    if (thread_id >= max_threads) return;
+
     const int height = cpip->h;
+    const int y_start = (height * (thread_id + 0)) / max_threads;
+    const int y_fin   = (height * (thread_id + 1)) / max_threads;
     const int width = cpip->w;
     const int x_fin = width - 32;
     const int dst_pitch = cpip->line_size;
     const int src_pitch = ((width + 1) / 2) * 4;
-    const char *ycp_src_line = (const char *)cpip->pixelp;
-    char *ycp_dst_line = (char *)cpip->ycp;
-    for (int y = 0; y < height; y++, ycp_dst_line += dst_pitch, ycp_src_line += src_pitch) {
+    const char *ycp_src_line = (const char *)cpip->pixelp + y_start * src_pitch;
+    char *ycp_dst_line = (char *)cpip->ycp + y_start * dst_pitch;
+    for (int y = y_start; y < y_fin; y++, ycp_dst_line += dst_pitch, ycp_src_line += src_pitch) {
         const char *ptr_src = ycp_src_line;
         char *ptr_dst = ycp_dst_line;
         const char *ptr_src_fin = ptr_src + x_fin * 2;
@@ -505,16 +522,22 @@ static __forceinline void convert_yc48_yuy2_simd(void *ptr_dst, const void *ptr_
     (aligned_store) ? _mm256_stream_si256((__m256i *)ptr_dst, yYUY2) : _mm256_storeu_si256((__m256i *)ptr_dst, yYUY2);
 }
 
-void convert_yc48_yuy2_avx2(COLOR_PROC_INFO *cpip) {
+void convert_yc48_yuy2_avx2(int thread_id, int thread_num, void *param1, void *param2) {
+    COLOR_PROC_INFO *cpip = (COLOR_PROC_INFO *)param1;
+    const int max_threads = std::min(thread_num, *(int *)param2);
+    if (thread_id >= max_threads) return;
+
     const int height = cpip->h;
+    const int y_start = (height * (thread_id + 0)) / max_threads;
+    const int y_fin   = (height * (thread_id + 1)) / max_threads;
     const int width = cpip->w;
     const int x_fin = width - 32;
     const int pitch = cpip->line_size;
     const int src_pitch = cpip->line_size;
     const int dst_pitch = ((width + 1) / 2) * 4;
-    const char *ycp_src_line = (const char *)cpip->ycp;
-    char *ycp_dst_line = (char *)cpip->pixelp;
-    for (int y = 0; y < height; y++, ycp_dst_line += dst_pitch, ycp_src_line += src_pitch) {
+    const char *ycp_src_line = (const char *)cpip->ycp + y_start * src_pitch;
+    char *ycp_dst_line = (char *)cpip->pixelp + y_start * dst_pitch;
+    for (int y = y_start; y < y_fin; y++, ycp_dst_line += dst_pitch, ycp_src_line += src_pitch) {
         const char *ptr_src = ycp_src_line;
         const char *ptr_src_fin = ptr_src + x_fin * sizeof(PIXEL_YC);
         char *ptr_dst = ycp_dst_line;

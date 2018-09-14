@@ -32,45 +32,62 @@
 #include "color.h"
 #include "convert_csp.h"
 #include "color_simd.h"
+#include <algorithm>
 
-void convert_yuy2_yc48_c(COLOR_PROC_INFO *cpip) {
-    convert_yuy2_yc48(cpip, btxxx_to_bt601);
+void convert_yuy2_yc48_c(int thread_id, int thread_num, void *param1, void *param2) {
+    COLOR_PROC_INFO *cpip = (COLOR_PROC_INFO *)param1;
+    const int max_threads = std::min(thread_num, *(int *)param2);
+    if (thread_id >= max_threads) return;
+
+    convert_yuy2_yc48(cpip, thread_id, max_threads, btxxx_to_bt601);
 }
-void convert_yc48_yuy2_c(COLOR_PROC_INFO *cpip) {
-    convert_yc48_yuy2(cpip, bt601_to_btxxx);
+void convert_yc48_yuy2_c(int thread_id, int thread_num, void *param1, void *param2) {
+    COLOR_PROC_INFO *cpip = (COLOR_PROC_INFO *)param1;
+    const int max_threads = std::min(thread_num, *(int *)param2);
+    if (thread_id >= max_threads) return;
+
+    convert_yc48_yuy2(cpip, thread_id, max_threads, bt601_to_btxxx);
 }
-void convert_yc48_btxxx_bt601_c(COLOR_PROC_INFO *cpip) {
-    convert_matrix_yc48<true>(cpip, btxxx_to_bt601);
+void convert_yc48_btxxx_bt601_c(int thread_id, int thread_num, void *param1, void *param2) {
+    COLOR_PROC_INFO *cpip = (COLOR_PROC_INFO *)param1;
+    const int max_threads = std::min(thread_num, *(int *)param2);
+    if (thread_id >= max_threads) return;
+
+    convert_matrix_yc48<true>(cpip, thread_id, max_threads, btxxx_to_bt601);
 }
-void convert_yc48_bt601_btxxx_c(COLOR_PROC_INFO *cpip) {
-    convert_matrix_yc48<false>(cpip, bt601_to_btxxx);
+void convert_yc48_bt601_btxxx_c(int thread_id, int thread_num, void *param1, void *param2) {
+    COLOR_PROC_INFO *cpip = (COLOR_PROC_INFO *)param1;
+    const int max_threads = std::min(thread_num, *(int *)param2);
+    if (thread_id >= max_threads) return;
+
+    convert_matrix_yc48<false>(cpip, thread_id, max_threads, bt601_to_btxxx);
 }
 
-void convert_yuy2_yc48_sse2(COLOR_PROC_INFO *cpip);
-void convert_yuy2_yc48_ssse3(COLOR_PROC_INFO *cpip);
-void convert_yuy2_yc48_sse41(COLOR_PROC_INFO *cpip);
-void convert_yuy2_yc48_avx(COLOR_PROC_INFO *cpip);
-void convert_yuy2_yc48_avx2(COLOR_PROC_INFO *cpip);
-void convert_yc48_yuy2_sse2(COLOR_PROC_INFO *cpip);
-void convert_yc48_yuy2_ssse3(COLOR_PROC_INFO *cpip);
-void convert_yc48_yuy2_sse41(COLOR_PROC_INFO *cpip);
-void convert_yc48_yuy2_avx(COLOR_PROC_INFO *cpip);
-void convert_yc48_yuy2_avx2(COLOR_PROC_INFO *cpip);
-void convert_yc48_btxxx_bt601_sse2(COLOR_PROC_INFO *cpip);
-void convert_yc48_btxxx_bt601_ssse3(COLOR_PROC_INFO *cpip);
-void convert_yc48_btxxx_bt601_sse41(COLOR_PROC_INFO *cpip);
-void convert_yc48_btxxx_bt601_avx(COLOR_PROC_INFO *cpip);
-void convert_yc48_btxxx_bt601_avx2(COLOR_PROC_INFO *cpip);
-void convert_yc48_bt601_btxxx_sse2(COLOR_PROC_INFO *cpip);
-void convert_yc48_bt601_btxxx_ssse3(COLOR_PROC_INFO *cpip);
-void convert_yc48_bt601_btxxx_sse41(COLOR_PROC_INFO *cpip);
-void convert_yc48_bt601_btxxx_avx(COLOR_PROC_INFO *cpip);
-void convert_yc48_bt601_btxxx_avx2(COLOR_PROC_INFO *cpip);
+void convert_yuy2_yc48_sse2(int thread_id, int thread_num, void *param1, void *param2);
+void convert_yuy2_yc48_ssse3(int thread_id, int thread_num, void *param1, void *param2);
+void convert_yuy2_yc48_sse41(int thread_id, int thread_num, void *param1, void *param2);
+void convert_yuy2_yc48_avx(int thread_id, int thread_num, void *param1, void *param2);
+void convert_yuy2_yc48_avx2(int thread_id, int thread_num, void *param1, void *param2);
+void convert_yc48_yuy2_sse2(int thread_id, int thread_num, void *param1, void *param2);
+void convert_yc48_yuy2_ssse3(int thread_id, int thread_num, void *param1, void *param2);
+void convert_yc48_yuy2_sse41(int thread_id, int thread_num, void *param1, void *param2);
+void convert_yc48_yuy2_avx(int thread_id, int thread_num, void *param1, void *param2);
+void convert_yc48_yuy2_avx2(int thread_id, int thread_num, void *param1, void *param2);
+void convert_yc48_btxxx_bt601_sse2(int thread_id, int thread_num, void *param1, void *param2);
+void convert_yc48_btxxx_bt601_ssse3(int thread_id, int thread_num, void *param1, void *param2);
+void convert_yc48_btxxx_bt601_sse41(int thread_id, int thread_num, void *param1, void *param2);
+void convert_yc48_btxxx_bt601_avx(int thread_id, int thread_num, void *param1, void *param2);
+void convert_yc48_btxxx_bt601_avx2(int thread_id, int thread_num, void *param1, void *param2);
+void convert_yc48_bt601_btxxx_sse2(int thread_id, int thread_num, void *param1, void *param2);
+void convert_yc48_bt601_btxxx_ssse3(int thread_id, int thread_num, void *param1, void *param2);
+void convert_yc48_bt601_btxxx_sse41(int thread_id, int thread_num, void *param1, void *param2);
+void convert_yc48_bt601_btxxx_avx(int thread_id, int thread_num, void *param1, void *param2);
+void convert_yc48_bt601_btxxx_avx2(int thread_id, int thread_num, void *param1, void *param2);
 
 void get_func(convert_color_func *func_list, uint32_t simd_avail) {
     struct func_data {
         uint32_t simd;
-        convert_func func;
+        MULTI_THREAD_FUNC func;
     };
     static const func_data FUNC_YUY2_YC48[] = {
         { AVX2,  convert_yuy2_yc48_avx2 },
