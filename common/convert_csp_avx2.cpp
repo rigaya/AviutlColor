@@ -518,7 +518,8 @@ static __forceinline void convert_yc48_yuy2_simd(void *ptr_dst, const void *ptr_
     yY = convert_y_range_from_yc48(yY, yC_Y_L_MA_8, Y_L_RSH_8, _mm256_set1_epi32(1<<LSFT_YCC_8), yC_pw_one);
     yCbCrEven = convert_uv_range_from_yc48(yCbCrEven, _mm256_set1_epi16(UV_OFFSET_x1), yC_UV_L_MA_8_444, UV_L_RSH_8_444, _mm256_set1_epi32(1<<LSFT_YCC_8), yC_pw_one);
 
-    __m256i yYUY2 = _mm256_or_si256(_mm256_and_si256(yY, _mm256_set1_epi16(0xff)), _mm256_slli_epi16(yCbCrEven, 8));
+    const __m256i yC_255 = _mm256_srli_epi16(_mm256_cmpeq_epi16(yY, yY), 8);
+    __m256i yYUY2 = _mm256_or_si256(_mm256_and_si256(_mm256_min_epi16(yY, yC_255), _mm256_set1_epi16(0xff)), _mm256_slli_epi16(yCbCrEven, 8));
     (aligned_store) ? _mm256_stream_si256((__m256i *)ptr_dst, yYUY2) : _mm256_storeu_si256((__m256i *)ptr_dst, yYUY2);
 }
 

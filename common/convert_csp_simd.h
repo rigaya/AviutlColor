@@ -522,8 +522,9 @@ static __forceinline void convert_yc48_yuy2_simd(void *ptr_dst, const void *ptr_
     xY = convert_y_range_from_yc48(xY, xC_Y_L_MA_8, Y_L_RSH_8, _mm_set1_epi32(1<<LSFT_YCC_8), xC_pw_one);
     xCbCrEven = convert_uv_range_from_yc48(xCbCrEven, _mm_set1_epi16(UV_OFFSET_x1), xC_UV_L_MA_8_444, UV_L_RSH_8_444, _mm_set1_epi32(1<<LSFT_YCC_8), xC_pw_one);
 
+    const __m128i xC_255 = _mm_srli_epi16(_mm_cmpeq_epi16(xY, xY), 8);
     _mm_storeu_si128((__m128i *)ptr_dst,
-        _mm_or_si128(_mm_and_si128(xY, _mm_set1_epi16(0xff)), _mm_slli_epi16(xCbCrEven, 8)));
+        _mm_or_si128(_mm_and_si128(_mm_min_epi16(xY, xC_255), _mm_set1_epi16(0xff)), _mm_slli_epi16(xCbCrEven, 8)));
 }
 
 static __forceinline void convert_yc48_yuy2_simd(COLOR_PROC_INFO *cpip, int thread_id, int max_threads, const CSP_CONVERT_MATRIX matrix) {
