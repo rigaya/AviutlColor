@@ -54,20 +54,42 @@
 #define _mm256_slli256_si256(a, i) ((i<=16) ? _mm256_alignr_epi8(a, _mm256_permute2x128_si256(a, a, (0x00<<4) + 0x08), MM_ABS(16-i)) : _mm256_bslli_epi128(_mm256_permute2x128_si256(a, a, (0x00<<4) + 0x08), MM_ABS(i-16)))
 
 #if MATRIX_CONVERSION
-static const __m256i y_btxxx_bt601_y1 = _mm256_set1_epi16(btxxx_to_bt601.y1);
-static const __m256i y_btxxx_bt601_y2 = _mm256_set1_epi16(btxxx_to_bt601.y2);
-static const __m256i y_btxxx_bt601_cbcr_mul = _mm256_broadcastsi128_si256(_mm_set1_epi64x(
-                            (int64_t)btxxx_to_bt601.cb1 |
-                            (((int64_t)btxxx_to_bt601.cb2 << 16) & (int64_t)0x00000000ffff0000) |
-                            (((int64_t)btxxx_to_bt601.cr1 << 32) & (int64_t)0x0000ffff00000000) |
-                            ((int64_t)btxxx_to_bt601.cr2 << 48)));
-static const __m256i y_bt601_btxxx_y1 = _mm256_set1_epi16(bt601_to_btxxx.y1);
-static const __m256i y_bt601_btxxx_y2 = _mm256_set1_epi16(bt601_to_btxxx.y2);
-static const __m256i y_bt601_btxxx_cbcr_mul = _mm256_broadcastsi128_si256(_mm_set1_epi64x(
-                            (int64_t)bt601_to_btxxx.cb1 |
-                            (((int64_t)bt601_to_btxxx.cb2 << 16) & (int64_t)0x00000000ffff0000) |
-                            (((int64_t)bt601_to_btxxx.cr1 << 32) & (int64_t)0x0000ffff00000000) |
-                            ((int64_t)bt601_to_btxxx.cr2 << 48)));
+alignas(32) static const int16_t y_btxxx_bt601_y1[16] = {
+    btxxx_to_bt601.y1, btxxx_to_bt601.y1, btxxx_to_bt601.y1, btxxx_to_bt601.y1,
+    btxxx_to_bt601.y1, btxxx_to_bt601.y1, btxxx_to_bt601.y1, btxxx_to_bt601.y1,
+    btxxx_to_bt601.y1, btxxx_to_bt601.y1, btxxx_to_bt601.y1, btxxx_to_bt601.y1,
+    btxxx_to_bt601.y1, btxxx_to_bt601.y1, btxxx_to_bt601.y1, btxxx_to_bt601.y1
+};
+alignas(32) static const int16_t y_btxxx_bt601_y2[16] = {
+    btxxx_to_bt601.y2, btxxx_to_bt601.y2, btxxx_to_bt601.y2, btxxx_to_bt601.y2,
+    btxxx_to_bt601.y2, btxxx_to_bt601.y2, btxxx_to_bt601.y2, btxxx_to_bt601.y2,
+    btxxx_to_bt601.y2, btxxx_to_bt601.y2, btxxx_to_bt601.y2, btxxx_to_bt601.y2,
+    btxxx_to_bt601.y2, btxxx_to_bt601.y2, btxxx_to_bt601.y2, btxxx_to_bt601.y2
+};
+alignas(32) static const int16_t y_btxxx_bt601_cbcr_mul[16] = {
+    btxxx_to_bt601.cb1, btxxx_to_bt601.cb2, btxxx_to_bt601.cr1, btxxx_to_bt601.cr2,
+    btxxx_to_bt601.cb1, btxxx_to_bt601.cb2, btxxx_to_bt601.cr1, btxxx_to_bt601.cr2,
+    btxxx_to_bt601.cb1, btxxx_to_bt601.cb2, btxxx_to_bt601.cr1, btxxx_to_bt601.cr2,
+    btxxx_to_bt601.cb1, btxxx_to_bt601.cb2, btxxx_to_bt601.cr1, btxxx_to_bt601.cr2,
+};
+alignas(32) static const int16_t y_bt601_btxxx_y1[16] = {
+    bt601_to_btxxx.y1, bt601_to_btxxx.y1, bt601_to_btxxx.y1, bt601_to_btxxx.y1,
+    bt601_to_btxxx.y1, bt601_to_btxxx.y1, bt601_to_btxxx.y1, bt601_to_btxxx.y1,
+    bt601_to_btxxx.y1, bt601_to_btxxx.y1, bt601_to_btxxx.y1, bt601_to_btxxx.y1,
+    bt601_to_btxxx.y1, bt601_to_btxxx.y1, bt601_to_btxxx.y1, bt601_to_btxxx.y1
+};
+alignas(32) static const int16_t y_bt601_btxxx_y2[16] = {
+    bt601_to_btxxx.y2, bt601_to_btxxx.y2, bt601_to_btxxx.y2, bt601_to_btxxx.y2,
+    bt601_to_btxxx.y2, bt601_to_btxxx.y2, bt601_to_btxxx.y2, bt601_to_btxxx.y2,
+    bt601_to_btxxx.y2, bt601_to_btxxx.y2, bt601_to_btxxx.y2, bt601_to_btxxx.y2,
+    bt601_to_btxxx.y2, bt601_to_btxxx.y2, bt601_to_btxxx.y2, bt601_to_btxxx.y2
+};
+alignas(32) static const int16_t y_bt601_btxxx_cbcr_mul[16] = {
+    bt601_to_btxxx.cb1, bt601_to_btxxx.cb2, bt601_to_btxxx.cr1, bt601_to_btxxx.cr2,
+    bt601_to_btxxx.cb1, bt601_to_btxxx.cb2, bt601_to_btxxx.cr1, bt601_to_btxxx.cr2,
+    bt601_to_btxxx.cb1, bt601_to_btxxx.cb2, bt601_to_btxxx.cr1, bt601_to_btxxx.cr2,
+    bt601_to_btxxx.cb1, bt601_to_btxxx.cb2, bt601_to_btxxx.cr1, bt601_to_btxxx.cr2,
+};
 #endif //#if MATRIX_CONVERSION
 
 template<bool aligned_store>
@@ -115,14 +137,16 @@ static __forceinline void convert_csp_y_cbcr(__m256i& yY, __m256i& yCbCrEven, __
 #if MATRIX_CONVERSION
     __m256i yCb = _mm256_or_si256(_mm256_and_si256(yCbCrEven, _mm256_set1_epi32(0xffff)), _mm256_slli_epi32(yCbCrOdd, 16));
     __m256i yCr = _mm256_or_si256(_mm256_srli_epi32(yCbCrEven, 16), _mm256_andnot_si256(_mm256_set1_epi32(0xffff), yCbCrOdd));
-    yY = _mm256_add_epi16(_mm256_add_epi16(yY, _mm256_mulhi_epi16(yCb, (from_btxxx) ? y_btxxx_bt601_y1 : y_bt601_btxxx_y1)), _mm256_mulhi_epi16(yCr, (from_btxxx) ? y_btxxx_bt601_y2 : y_bt601_btxxx_y2));
+    yY = _mm256_add_epi16(_mm256_add_epi16(yY,
+        _mm256_mulhi_epi16(yCb, _mm256_load_si256((from_btxxx) ? (const __m256i *)y_btxxx_bt601_y1 : (const __m256i *)y_bt601_btxxx_y1))),
+        _mm256_mulhi_epi16(yCr, _mm256_load_si256((from_btxxx) ? (const __m256i *)y_btxxx_bt601_y2 : (const __m256i *)y_bt601_btxxx_y2)));
 
     __m256i yCbCrCbCrEvenLo = _mm256_unpacklo_epi32(yCbCrEven, yCbCrEven);
     __m256i yCbCrCbCrEvenHi = _mm256_unpackhi_epi32(yCbCrEven, yCbCrEven);
     __m256i yCbCrCbCrOddLo = _mm256_unpacklo_epi32(yCbCrOdd, yCbCrOdd);
     __m256i yCbCrCbCrOddHi = _mm256_unpackhi_epi32(yCbCrOdd, yCbCrOdd);
 
-    const __m256i yMul = (from_btxxx) ? y_btxxx_bt601_cbcr_mul : y_bt601_btxxx_cbcr_mul;
+    const __m256i yMul = _mm256_load_si256((from_btxxx) ? (const __m256i *)y_btxxx_bt601_cbcr_mul : (const __m256i *)y_bt601_btxxx_cbcr_mul);
     yCbCrEven = _mm256_packs_epi32(_mm256_srai_epi32(_mm256_madd_epi16(yCbCrCbCrEvenLo, yMul), 14),
                                    _mm256_srai_epi32(_mm256_madd_epi16(yCbCrCbCrEvenHi, yMul), 14));
     yCbCrOdd = _mm256_packs_epi32(_mm256_srai_epi32(_mm256_madd_epi16(yCbCrCbCrOddLo, yMul), 14),
